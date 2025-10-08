@@ -12,42 +12,50 @@ export default function Services() {
   }, []);
 
   return (
-    <section className="max-w-screen-xl mx-auto px-6 py-20 font-sans">
-      <div className="text-center mb-10">
-        <h2 className="text-2xl sm:text-2xl text-black font-semibold font-satisfy">
+    <section className="max-w-screen-xl mx-auto px-4 sm:px-6 py-10 sm:py-20 font-sans">
+      <div className="text-center mb-8 sm:mb-10">
+        <h2 className="text-2xl sm:text-3xl text-black font-semibold font-satisfy">
           Services We Offer
         </h2>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 sm:gap-8">
         {services.map((service) => (
           <div
             key={service.id}
-            className="bg-white border p-2 rounded-xl shadow-md transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer group"
+            className="bg-white border p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-xl active:shadow-xl"
           >
-            <div className="cover h-48 flex items-center justify-center mb-4">
-              <img
-                src={service.image}
-                alt={service.title}
-                className="object-cover h-full w-full rounded-xl"
-              />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2 font-poppins">
-              {service.title}
-            </h3>
-            <p className="text-sm p-4 text-left text-gray-600 font-poppins">
-              {service.description}
-            </p>
-            <div className="space-x-3 justify-between p-2 hidden md:flex">
-              <p className="text-sm font-bold p-2 text-left font-poppins text-zinc-800">
-                {service.cost}
-              </p>
-              <Link
-                to={`/event/${service.id}`}
-                className="border border-black text-black px-4 py-2 rounded-full font-medium hover:bg-gray-900 hover:text-white"
-              >
-                See Details
-              </Link>
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="w-full sm:w-1/3 flex-shrink-0">
+                <img
+                  src={service.image}
+                  alt={service.title}
+                  className="object-cover w-full h-56 sm:h-full rounded-xl"
+                />
+              </div>
+
+              <div className="w-full sm:w-2/3 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 font-poppins">
+                    {service.title}
+                  </h3>
+                  <p className="text-sm sm:text-base text-gray-600 font-poppins leading-relaxed">
+                    {service.description}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-6">
+                  <p className="text-lg font-bold font-poppins text-zinc-800">
+                    {service.cost}
+                  </p>
+                  <Link
+                    to={`/event/${service.id}`}
+                    className="w-full sm:w-auto border-2 border-black text-black px-6 py-2.5 rounded-full font-medium hover:bg-black hover:text-white transition-colors duration-300 text-center"
+                  >
+                    See Details
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         ))}
