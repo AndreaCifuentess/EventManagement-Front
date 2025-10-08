@@ -1,29 +1,41 @@
+import { auth } from "../firebase"; 
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../firebase"; // Adjust path if needed
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // 🔍 Track authentication state
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isMenuOpen]);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-    return () => unsubscribe(); // Clean up listener
+    return () => unsubscribe(); 
   }, []);
 
-  // 🔓 Logout handler
+
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/sign-in");
+    setIsMenuOpen(false);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
-    <nav className="w-full px-4 py-3 flex justify-between items-center bg-white shadow-sm font-poppins">
-      {/* 🔗 Logo Link */}
+    <nav className="w-full px-4 py-3 flex justify-between items-center bg-white shadow-sm font-poppins relative z-50">
       <div>
         <Link to="/">
           <img
@@ -34,7 +46,83 @@ export default function Navbar() {
         </Link>
       </div>
 
-      {/* 🔗 Navigation Links */}
+      <button 
+        onClick={toggleMenu} 
+        className="md:hidden z-50 relative"
+        aria-label="Toggle menu"
+      >
+        <svg 
+          className={`w-6 h-6 ${isMenuOpen ? 'stroke-white' : 'stroke-current'}`} 
+          fill="none" 
+          viewBox="0 0 24 24"
+        >
+          {isMenuOpen ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
+
+      {/* Full screen overlay menu */}
+      <div className={`${
+        isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+      } md:hidden fixed inset-0 bg-black bg-opacity-95 transition-all duration-300 ease-in-out z-40`}>
+        <div className="flex flex-col items-center justify-center h-full">
+          <ul className="flex flex-col items-center space-y-8 text-2xl text-white mb-12">
+            <li><Link onClick={toggleMenu} to="/" className="hover:text-purple-500 transition-colors">Home</Link></li>
+            <li><Link onClick={toggleMenu} to="/categories" className="hover:text-purple-500 transition-colors">Categories</Link></li>
+            <li><Link onClick={toggleMenu} to="/services" className="hover:text-purple-500 transition-colors">Services</Link></li>
+            <li><Link onClick={toggleMenu} to="/contact" className="hover:text-purple-500 transition-colors">Contact</Link></li>
+          </ul>
+
+          <div className="flex flex-col items-center space-y-4 w-64">
+            {!user ? (
+              <>
+                <Link
+                  onClick={toggleMenu}
+                  to="/sign-in"
+                  className="w-full border border-white text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-black transition-colors text-center"
+                >
+                  Log in
+                </Link>
+                <Link
+                  onClick={toggleMenu}
+                  to="/sign-up"
+                  className="w-full bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors text-center"
+                >
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  onClick={toggleMenu}
+                  to="/cart"
+                  className="w-full border border-white text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-black transition-colors text-center"
+                >
+                  My Cart
+                </Link>
+                <Link
+                  onClick={toggleMenu}
+                  to="/profile"
+                  className="w-full border border-white text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-black transition-colors text-center"
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-red-500 text-white px-6 py-3 rounded-full font-medium hover:bg-red-600 transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop menu */}
       <ul className="hidden md:flex space-x-8 text-md font-medium text-black">
         <li><Link to="/" className="hover:text-purple-500">Home</Link></li>
         <li><Link to="/categories" className="hover:text-purple-500">Categories</Link></li>
@@ -42,10 +130,8 @@ export default function Navbar() {
         <li><Link to="/contact" className="hover:text-purple-500">Contact</Link></li>
       </ul>
 
-      {/* 🔘 Right Side Buttons */}
-      <div className="space-x-3 hidden md:flex">
+      <div className="hidden md:flex space-x-3">
         {!user ? (
-          // 🔐 Not Logged In
           <>
             <Link
               to="/sign-in"
@@ -61,7 +147,6 @@ export default function Navbar() {
             </Link>
           </>
         ) : (
-          // 🧑‍🎓 Logged In
           <>
             <Link
               to="/cart"
