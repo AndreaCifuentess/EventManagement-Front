@@ -39,7 +39,7 @@ export default function Navbar() {
       <div>
         <Link to="/">
           <img
-            src="public/logo.png"
+            src="https://github.com/newdevatgit/event-management-ui/blob/main/public/logo.png?raw=true"
             alt="Eventique"
             className="h-[60px] w-auto object-fill"
           />
