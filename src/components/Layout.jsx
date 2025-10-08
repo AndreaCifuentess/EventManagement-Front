@@ -9,7 +9,7 @@ export default function Layout({ children}){
         <div className="flex flex-col min-h-screen w-full font-poppins">
         <Navbar/>
         <DiscountBanner/>
-        <main className="min-h-auto px-4 py-2">{children}</main>
+        <main className="min-h-auto">{children}</main>
           <Outlet />
 
         <Footer/>
