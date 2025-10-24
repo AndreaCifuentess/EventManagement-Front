@@ -28,7 +28,6 @@ function App() {
         <Route path="/event/:id" element={<EventDetails/>}/>
         <Route path="/profile" element={<Profile/>}/>
         <Route path="/cart" element={<Cart/>}/>
-        {/* Add more routes as needed */}
       </Routes>
      </Layout>
     </BrowserRouter>
