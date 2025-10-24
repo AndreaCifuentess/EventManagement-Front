@@ -1,7 +1,6 @@
-// src/pages/EventDetails.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { auth, db } from "../firebase"; // Make sure this path is correct
+import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
@@ -13,7 +12,6 @@ export default function EventDetails() {
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    // Fetch event data
     fetch("/servicesData.json")
       .then((res) => res.json())
       .then((data) => {
@@ -24,7 +22,6 @@ export default function EventDetails() {
   }, [id]);
 
   useEffect(() => {
-    // Listen to auth state
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
@@ -56,44 +53,57 @@ export default function EventDetails() {
 
   if (!event) {
     return (
-      <div className="text-center py-20 text-xl text-red-500">
+      <div className="flex items-center justify-center min-h-[60vh] text-lg text-red-500 font-medium">
         Event not found!
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 font-poppins">
-      <div className="flex flex-col md:flex-row gap-10 items-center bg-white shadow-xl rounded-2xl overflow-hidden transition-transform hover:scale-[1.01]">
-        {/* Image */}
-        <img
-          src={event.image}
-          alt={event.title}
-          className="w-full md:w-[45%] h-[300px] object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none"
-        />
+    <div className="max-w-6xl mx-auto px-6 sm:px-10 py-12 font-poppins">
+      <div className="bg-white rounded-3xl shadow-2xl overflow-hidden grid md:grid-cols-2">
+        {/* Image Section */}
+        <div className="relative">
+          <img
+            src={event.image}
+            alt={event.title}
+            className="w-full h-64 md:h-full object-cover"
+          />
+          <div className="absolute top-4 left-4 bg-green-600 text-white text-sm font-medium px-4 py-1 rounded-full shadow-md">
+            {event.category || "Featured Event"}
+          </div>
+        </div>
 
-        {/* Event Content */}
-        <div className="w-full md:w-[55%] p-6 space-y-4">
-          <h2 className="text-3xl font-bold text-gray-800">{event.title}</h2>
-          <p className="text-gray-600 text-base leading-relaxed">{event.description}</p>
-
-          <div className="grid grid-cols-2 gap-4 mt-4 text-sm text-gray-500">
-            <p>
-              <span className="font-semibold text-gray-700">📍 Location:</span> {event.location}
+        {/* Content Section */}
+        <div className="p-8 flex flex-col justify-between">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              {event.title}
+            </h2>
+            <p className="text-gray-600 leading-relaxed mb-6">
+              {event.description}
             </p>
-            <p>
-              <span className="font-semibold text-gray-700">⏳ Duration:</span> {event.duration}
+
+            <div className="space-y-3 text-gray-700">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2">
+                <span className="font-semibold text-gray-800">Location</span>
+                <span className="text-gray-500">{event.location}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2">
+                <span className="font-semibold text-gray-800">Duration</span>
+                <span className="text-gray-500">{event.duration}</span>
+              </div>
+            </div>
+
+            <p className="text-2xl font-semibold text-green-700 mt-6">
+              ₹{event.cost}
             </p>
           </div>
-
-          <p className="text-xl font-semibold text-blue-600 mt-4">
-            ₹{event.cost}
-          </p>
 
           <button
             onClick={handleAddToCart}
             disabled={adding}
-            className="mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium px-6 py-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-8 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {adding ? "Adding..." : "Add to Cart"}
           </button>
@@ -101,5 +111,4 @@ export default function EventDetails() {
       </div>
     </div>
   );
-
 }
