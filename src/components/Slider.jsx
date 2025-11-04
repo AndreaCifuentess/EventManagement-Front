@@ -4,35 +4,55 @@ import React, { useState, useEffect, useCallback } from 'react';
 export default function App() {
   const slideData = [
     {
-      imgSrc: "https://www.fiestroevents.com/uploads/24/08/66b21e981eced0608241722949272.png",
-      title: "Elegant Wedding Receptions",
-      description: "Crafting unforgettable moments with stunning decor and seamless planning."
+      imgSrc: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YmlydGhkYXklMjBwYXJ0eXxlbnwwfHwwfHx8MA%3D%3D&w=1000&q=80",
+      title: "Cumpleaños",
+      description: "Celebra tu día especial con una fiesta inolvidable llena de alegría y diversión."
     },
     {
-      imgSrc: "https://www.mrsfields.com/cdn/shop/articles/shutterstock_2408066691_1.jpg?v=1725556532",
-      title: "Joyful Birthday Parties",
-      description: "Celebrate another year with fun, laughter, and a party to remember."
+      imgSrc: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8d2VkZGluZ3xlbnwwfHwwfHx8MA%3D%3D&w=1000&q=80",
+      title: "Bodas",
+      description: "El día más importante de tu vida merece una celebración perfecta y mágica."
     },
     {
-      imgSrc: "https://floweraura-blog-img.s3.ap-south-1.amazonaws.com/Celebrate+Anniversary+travel/cvr.jpg",
-      title: "Romantic Anniversaries",
-      description: "Mark your special milestone with a celebration of your love story."
+      imgSrc: "https://academia.unad.edu.co/images/2024/diplo2024.jpg",
+      title: "Grados",
+      description: "Celebra tus logros académicos con una ceremonia digna de tu esfuerzo y dedicación."
     },
     {
-      imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTzZg9yKSUy0oKJsxJZblexdfoMYhwUAtY2yA&s",
-      title: "Corporate Holiday Events",
-      description: "Boost team morale with a professionally organized and festive gathering."
+      imgSrc: "https://dulcesfiestas.com.co/wp-content/uploads/elementor/thumbs/2_Ideas-para-decorar-bautizos-y-primera-comunion-qpa0xxnlh99xaia43oqxwwzx48wliev1h99y57voew.png",
+      title: "Bautizos",
+      description: "Una celebración espiritual llena de amor para dar la bienvenida a la fe."
     },
     {
-      imgSrc: "https://5.imimg.com/data5/SELLER/Default/2022/8/QF/JF/PJ/2713142/retirement-party-decoration-service.JPG",
-      title: "Honorable Retirement Parties",
-      description: "Celebrate a legacy of hard work and dedication with a fitting send-off."
+      imgSrc: "https://saketos.es/wp-content/uploads/2025/03/ninas-de-un-ano-3-1-jpg.webp",
+      title: "Fiesta Infantil",
+      description: "Diversión garantizada para los más pequeños con juegos, sorpresas y mucha alegría."
     },
     {
-      imgSrc: "https://www.parents.com/thmb/JlKRSVpphFei1B17UE35pVnV5Fg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/shutterstock_762391612-41aca833e9184016833a754be5e7d5c3.jpg",
-      title: "Baby Shower Celebrations",
-      description: "Welcome the newest addition to the family with a beautiful and heartwarming event."
+      imgSrc: "https://m.media-amazon.com/images/I/71se54LSd8L._AC_UF1000,1000_QL80_.jpg",
+      title: "Baby Shower",
+      description: "Prepara la llegada del nuevo miembro de la familia con una celebración especial."
     },
+    {
+      imgSrc: "https://www.mujerde10.com/wp-content/uploads/2025/07/estilo-de-vida-decoracion-para-xv-anos-tendencias--1024x678.jpg",
+      title: "Fiesta de 15 Años",
+      description: "Una noche mágica e inolvidable para celebrar esta importante transición."
+    },
+    {
+      imgSrc: "https://cdn0.bodas.com.mx/usr/4/3/7/0/cfb_2x_104532.jpg",
+      title: "Despedida de Solter@",
+      description: "La última celebración de soltería llena de sorpresas y momentos divertidos."
+    },
+    {
+      imgSrc: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y29uZmVyZW5jZXxlbnwwfHwwfHx8MA%3D%3D&w=1000&q=80",
+      title: "Conferencias y Capacitaciones",
+      description: "Espacios profesionales para el aprendizaje, networking y desarrollo empresarial."
+    },
+    {
+      imgSrc: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y29ycG9yYXRlJTIwbWVldGluZ3xlbnwwfHwwfHx8MA%3D%3D&w=1000&q=80",
+      title: "Reunión Corporativa",
+      description: "Eventos empresariales que impulsan la productividad y el trabajo en equipo."
+    }
   ];
 
   return (
@@ -42,7 +62,7 @@ export default function App() {
   );
 }
 
-
+// Los componentes ChevronLeftIcon, ChevronRightIcon y EnhancedSlider se mantienen igual
 const ChevronLeftIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -55,7 +75,7 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
-
+// El componente EnhancedSlider se mantiene exactamente igual
 function EnhancedSlider({ slides }) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -139,4 +159,3 @@ function EnhancedSlider({ slides }) {
     </div>
   );
 }
-
