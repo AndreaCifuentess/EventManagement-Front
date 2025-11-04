@@ -56,35 +56,11 @@ npm install
 npm run dev
 ```
 
----
 
-## 📸 Screenshots
-
-### 🔹 Home page
-![Home page](src/assets/Home_page_before_login.png)
-
-### 🔹 Home page Logged In
-![Home page](src/assets/Home_page_after_login.png)
-
-### 🔹 Services
-![services](src/assets/services_page.png)
-
---
-
-## 🌐 Live Demo
-
-👉 [https://neweventique.netlify.app](https://neweventique.netlify.app)
-
----
-
-## 🙌 Acknowledgements
-
-Built with ❤️ using React, Vite, and Tailwind CSS as part of a personal web development project.
-
----
 
 ## ⭐ Show Your Support
 
 If you like this project, give it a ⭐ on GitHub or share it!
 
 ---
+
