@@ -2,23 +2,28 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { registerRequest } from "../api/auth"; // ← Importar tu servicio
-import { toast } from "react-hot-toast";
+import { registerRequest } from "../api/auth";
+
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
         password: "",
-        phone: "", // ← Agregar teléfono
-        city: ""   // ← Agregar ciudad
+        phone: "",
+        city: ""
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        type: "success" 
+    });
 
     const navigate = useNavigate();
 
-    // Handle input field changes
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
@@ -27,43 +32,80 @@ export default function SignUp() {
         }));
     };
 
-    // Handle form submission (Spring Boot sign-up)
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("🎯 handleSubmit EJECUTÁNDOSE - Formulario enviado"); // ← AGREGA ESTA LÍNEA
-    setIsLoading(true);
-    
-    try {
-        console.log("📝 Datos a enviar:", {  // ← Y ESTA TAMBIÉN
-            fullName: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
-            city: formData.city
+    // Snackbar 
+   
+    const showSnackbar = (message, type = "success") => {
+        setSnackbar({
+            open: true,
+            message,
+            type
         });
-       
-        await registerRequest.register({
-            fullName: formData.fullName,
-            email: formData.email,
-            password: formData.password,
-            phone: formData.phone,
-            city: formData.city,
-            type: "CLIENTE"
-        });
-        
-        toast.success("¡Cuenta creada exitosamente! 🎉");
-        navigate("/sign-in");
-    } catch (error) {
-        console.error("Error en registro:", error);
-        toast.error(error.response?.data?.message || "Error al crear la cuenta");
-    } finally {
-        setIsLoading(false);
-    }
-};
 
-    // Google sign-in - REMOVER o implementar con Spring Boot después
+    
+        if (type === "success") {
+            setTimeout(() => {
+                hideSnackbar();
+            }, 5000);
+        }
+    };
+
+    const hideSnackbar = () => {
+        setSnackbar(prev => ({
+            ...prev,
+            open: false
+        }));
+    };
+
+    
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        console.log("🎯 Formulario enviándose"); 
+        setIsLoading(true);
+        
+        try {
+            console.log("📝 Datos a enviar:", { 
+                fullName: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
+                city: formData.city
+            });
+        
+            await registerRequest.register({
+                fullName: formData.fullName,
+                email: formData.email,
+                password: formData.password,
+                phone: formData.phone,
+                city: formData.city,
+                type: "CLIENTE"
+            });
+            
+            showSnackbar(`¡Bienvenido ${formData.fullName}! 🎉 Cuenta creada exitosamente`, "success");
+            
+            // Limpiar formulario
+            setFormData({
+                fullName: "",
+                email: "",
+                password: "",
+                phone: "",
+                city: ""
+            });
+            
+            // Redirigir a la página de inicio de sesión después de 5 segundos
+            setTimeout(() => {
+                navigate("/sign-in");
+            }, 5000);
+            
+        } catch (error) {
+            console.error("Error en registro:", error);
+            showSnackbar(error.response?.data?.message || "Error al crear la cuenta", "error");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Google sign-in
     const handleGoogleSignIn = async () => {
-        toast.error("Registro con Google no disponible temporalmente");
-        // Si quieres mantenerlo, necesitarás implementar OAuth2 en Spring Boot
+        showSnackbar("Registro con Google no disponible temporalmente", "error");
     };
 
     return (
@@ -74,6 +116,38 @@ const handleSubmit = async (e) => {
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
                 <div className="absolute top-40 left-40 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
             </div>
+
+            {/* Snackbar Personalizado */}
+            {snackbar.open && (
+                <div className={`fixed top-4 right-4 z-50 transform transition-all duration-300 ${
+                    snackbar.open ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+                }`}>
+                    <div className={`max-w-md rounded-xl shadow-lg p-4 border-l-4 ${
+                        snackbar.type === 'success' 
+                            ? 'bg-green-50 border-green-500 text-green-800' 
+                            : 'bg-red-50 border-red-500 text-red-800'
+                    }`}>
+                        <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                                {snackbar.type === 'success' ? (
+                                    <span className="text-green-500 text-xl">✅</span>
+                                ) : (
+                                    <span className="text-red-500 text-xl">❌</span>
+                                )}
+                            </div>
+                            <div className="ml-3">
+                                <p className="text-sm font-medium">{snackbar.message}</p>
+                            </div>
+                            <button
+                                onClick={hideSnackbar}
+                                className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <span className="text-lg">×</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="relative w-full max-w-md">
                 {/* Card Container */}
@@ -187,7 +261,7 @@ const handleSubmit = async (e) => {
                                 </button>
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
-                                Mínimo 8 caracteres, una mayúscula, un número y un carácter especial
+                                Mínimo 8 caracteres, una mayúscula, un número y un carácter especial (@$!%*?&)
                             </p>
                         </div>
 
@@ -227,14 +301,14 @@ const handleSubmit = async (e) => {
                         </button>
                     </form>
 
-                    {/* Divider y Google - Opcional remover */}
+                    {/* Divider y Google */}
                     <div className="flex items-center my-8">
                         <div className="flex-grow border-t border-gray-300"></div>
                         <span className="mx-4 text-gray-500 text-sm font-medium">O regístrate con</span>
                         <div className="flex-grow border-t border-gray-300"></div>
                     </div>
 
-                    {/* OAuth Buttons - Opcional */}
+                    {/* OAuth Buttons */}
                     <div className="space-y-4">
                         <button
                             type="button"
