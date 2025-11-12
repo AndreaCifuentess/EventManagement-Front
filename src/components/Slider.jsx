@@ -24,7 +24,7 @@ export default function App() {
       description: "Una celebración espiritual llena de amor para dar la bienvenida a la fe."
     },
     {
-      imgSrc: "https://saketos.es/wp-content/uploads/2025/03/ninas-de-un-ano-3-1-jpg.webp",
+      imgSrc: "https://ladomingaeventos.com/wp-content/uploads/2013/11/fiestaninos2.jpg",
       title: "Fiesta Infantil",
       description: "Diversión garantizada para los más pequeños con juegos, sorpresas y mucha alegría."
     },

@@ -2,20 +2,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import {
-    createUserWithEmailAndPassword,
-    updateProfile,
-    signInWithPopup,
-    GoogleAuthProvider,
-} from "firebase/auth";
-import { auth } from "../firebase";
+import { registerRequest } from "../api/auth"; // ← Importar tu servicio
 import { toast } from "react-hot-toast";
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
-        name: "",
+        fullName: "",
         email: "",
         password: "",
+        phone: "", // ← Agregar teléfono
+        city: ""   // ← Agregar ciudad
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -31,41 +27,43 @@ export default function SignUp() {
         }));
     };
 
-    // Handle form submission (Email/Password sign-up)
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            const userCredential = await createUserWithEmailAndPassword(
-                auth,
-                formData.email,
-                formData.password
-            );
-            await updateProfile(userCredential.user, {
-                displayName: formData.name,
-            });
-            toast.success("¡Cuenta creada exitosamente! 🎉");
-            navigate("/");
-        } catch (error) {
-            toast.error(error.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // Handle form submission (Spring Boot sign-up)
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("🎯 handleSubmit EJECUTÁNDOSE - Formulario enviado"); // ← AGREGA ESTA LÍNEA
+    setIsLoading(true);
+    
+    try {
+        console.log("📝 Datos a enviar:", {  // ← Y ESTA TAMBIÉN
+            fullName: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            city: formData.city
+        });
+       
+        await registerRequest.register({
+            fullName: formData.fullName,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.phone,
+            city: formData.city,
+            type: "CLIENTE"
+        });
+        
+        toast.success("¡Cuenta creada exitosamente! 🎉");
+        navigate("/sign-in");
+    } catch (error) {
+        console.error("Error en registro:", error);
+        toast.error(error.response?.data?.message || "Error al crear la cuenta");
+    } finally {
+        setIsLoading(false);
+    }
+};
 
-    // Google sign-in logic
+    // Google sign-in - REMOVER o implementar con Spring Boot después
     const handleGoogleSignIn = async () => {
-        setIsLoading(true);
-        const provider = new GoogleAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-            toast.success("¡Registro con Google exitoso! 🎉");
-            navigate("/");
-        } catch (error) {
-            toast.error(error.message);
-        } finally {
-            setIsLoading(false);
-        }
+        toast.error("Registro con Google no disponible temporalmente");
+        // Si quieres mantenerlo, necesitarás implementar OAuth2 en Spring Boot
     };
 
     return (
@@ -101,8 +99,8 @@ export default function SignUp() {
                             <div className="relative">
                                 <input
                                     type="text"
-                                    name="name"
-                                    value={formData.name}
+                                    name="fullName"
+                                    value={formData.fullName}
                                     onChange={handleChange}
                                     placeholder="Tu nombre completo"
                                     required
@@ -123,6 +121,42 @@ export default function SignUp() {
                                     value={formData.email}
                                     onChange={handleChange}
                                     placeholder="tucorreo@ejemplo.com"
+                                    required
+                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Phone Field */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Teléfono
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    placeholder="3001234567"
+                                    required
+                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                />
+                            </div>
+                        </div>
+
+                        {/* City Field */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Ciudad
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    name="city"
+                                    value={formData.city}
+                                    onChange={handleChange}
+                                    placeholder="Tu ciudad"
                                     required
                                     className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
                                 />
@@ -153,7 +187,7 @@ export default function SignUp() {
                                 </button>
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
-                                Mínimo 6 caracteres
+                                Mínimo 8 caracteres, una mayúscula, un número y un carácter especial
                             </p>
                         </div>
 
@@ -193,14 +227,14 @@ export default function SignUp() {
                         </button>
                     </form>
 
-                    {/* Divider */}
+                    {/* Divider y Google - Opcional remover */}
                     <div className="flex items-center my-8">
                         <div className="flex-grow border-t border-gray-300"></div>
                         <span className="mx-4 text-gray-500 text-sm font-medium">O regístrate con</span>
                         <div className="flex-grow border-t border-gray-300"></div>
                     </div>
 
-                    {/* OAuth Buttons */}
+                    {/* OAuth Buttons - Opcional */}
                     <div className="space-y-4">
                         <button
                             type="button"
