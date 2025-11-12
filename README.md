@@ -1,11 +1,6 @@
 
 # 🎉 Eventique – Event Management Website
 
-Welcome to **Eventique**, a stylish and modern event management platform built using React + Vite + Tailwind CSS + Firebase.
-Live Demo: 👉 [https://neweventique.netlify.app](https://neweventique.netlify.app)
-
----
-
 ## 🌟 Overview
 
 Eventique is a fast, elegant, and responsive event management frontend built with modern tools.  
@@ -56,35 +51,4 @@ npm install
 npm run dev
 ```
 
----
 
-## 📸 Screenshots
-
-### 🔹 Home page
-![Home page](src/assets/Home_page_before_login.png)
-
-### 🔹 Home page Logged In
-![Home page](src/assets/Home_page_after_login.png)
-
-### 🔹 Services
-![services](src/assets/services_page.png)
-
---
-
-## 🌐 Live Demo
-
-👉 [https://neweventique.netlify.app](https://neweventique.netlify.app)
-
----
-
-## 🙌 Acknowledgements
-
-Built with ❤️ using React, Vite, and Tailwind CSS as part of a personal web development project.
-
----
-
-## ⭐ Show Your Support
-
-If you like this project, give it a ⭐ on GitHub or share it!
-
----
