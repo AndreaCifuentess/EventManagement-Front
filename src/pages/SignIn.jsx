@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook, FaEye, FaEyeSlash } from "react-icons/fa";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "../firebase";
+import api, { setAuthToken } from "../api/axios";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -28,7 +29,17 @@ export default function SignIn() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      // Authenticate with backend to obtain JWT and user info
+      const res = await api.post('/User/login', { email: formData.email, password: formData.password });
+      const token = res?.data?.token;
+      const userInfo = res?.data?.user;
+      if (token) {
+        setAuthToken(token);
+        if (userInfo) {
+          try { localStorage.setItem('user', JSON.stringify(userInfo)); } catch(e){}
+          setUser(userInfo);
+        }
+      }
       toast.success("¡Bienvenido de vuelta!");
       navigate("/");
     } catch (error) {
@@ -41,18 +52,7 @@ export default function SignIn() {
 
   // Google Sign-in
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast.success("¡Inicio de sesión exitoso con Google!");
-      navigate("/");
-    } catch (error) {
-      toast.error("Error al iniciar con Google");
-      console.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    toast('Inicio con Google no soportado en este modo. Usa email/password.', {icon: 'ℹ️'});
   };
 
   return (

@@ -1,10 +1,9 @@
-import { auth } from "../firebase"; 
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -16,16 +15,13 @@ export default function Navbar() {
     }
   }, [isMenuOpen]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe(); 
-  }, []);
+    useEffect(() => {
+      // nothing needed: user comes from context
+    }, [user]);
 
 
   const handleLogout = async () => {
-    await signOut(auth);
+    logout();
     navigate("/sign-in");
     setIsMenuOpen(false);
   };
@@ -105,6 +101,13 @@ export default function Navbar() {
                 </Link>
                 <Link
                   onClick={toggleMenu}
+                  to="/my-reservations"
+                  className="w-full border border-white text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-black transition-colors text-center"
+                >
+                  Mis reserve
+                </Link>
+                <Link
+                  onClick={toggleMenu}
                   to="/profile"
                   className="w-full border border-white text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-black transition-colors text-center"
                 >
@@ -153,6 +156,12 @@ export default function Navbar() {
               className="text-black border border-gray-300 px-4 py-2 rounded-full font-medium hover:bg-gray-100"
             >
               My Cart
+            </Link>
+            <Link
+              to="/my-reservations"
+              className="text-black border border-gray-300 px-4 py-2 rounded-full font-medium hover:bg-gray-100"
+            >
+              My reserve
             </Link>
             <Link
               to="/profile"

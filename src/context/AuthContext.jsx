@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { setAuthToken } from "../api/axios";
 
 // Create context
 const AuthContext = createContext();
@@ -10,21 +9,32 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-// Context Provider
+// Context Provider (JWT-based, no Firebase)
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, currentUser => {
-      setUser(currentUser);
-    });
-
-    return () => unsubscribe();
+    // Ensure axios has token if present
+    const token = localStorage.getItem("token");
+    if (token) setAuthToken(token);
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const logout = () => {
+    setUser(null);
+    setAuthToken(null);
+    try {
+      localStorage.removeItem("user");
+    } catch (e) {}
+  };
+
+  const value = { user, setUser, logout };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

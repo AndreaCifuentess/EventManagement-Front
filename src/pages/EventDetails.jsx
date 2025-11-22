@@ -1,14 +1,12 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { auth, db } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext";
 
 export default function EventDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
@@ -21,12 +19,7 @@ export default function EventDetails() {
       .catch((err) => console.error("Error loading event data:", err));
   }, [id]);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+  // user is provided by AuthContext
 
   const handleAddToCart = async () => {
     if (!user) {
@@ -37,12 +30,18 @@ export default function EventDetails() {
 
     try {
       setAdding(true);
-      const cartRef = doc(db, "users", user.uid, "cart", `event-${event.id}`);
-      await setDoc(cartRef, {
-        ...event,
-        addedAt: new Date(),
-      });
-      alert("Event added to cart!");
+      // store cart in localStorage per user id
+      try {
+        const key = `cart_${user.id || user.email}`;
+        const raw = localStorage.getItem(key);
+        const cart = raw ? JSON.parse(raw) : {};
+        cart[`event-${event.id}`] = { ...event, addedAt: new Date().toISOString() };
+        localStorage.setItem(key, JSON.stringify(cart));
+        alert("Event added to cart!");
+      } catch (e) {
+        console.error('Error storing cart', e);
+        alert('Failed to add to cart.');
+      }
     } catch (err) {
       console.error("Error adding to cart:", err);
       alert("Failed to add to cart.");
@@ -107,6 +106,12 @@ export default function EventDetails() {
           >
             {adding ? "Adding..." : "Add to Cart"}
           </button>
+          <Link
+            to={`/reserve?eventId=${event.id}`}
+            className="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            Reserve
+          </Link>
         </div>
       </div>
     </div>

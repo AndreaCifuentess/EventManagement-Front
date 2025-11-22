@@ -5,6 +5,10 @@ import Contact from './pages/Contact';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Services from './pages/Services';
+import Reserve from './pages/Reserve';
+import MyReservations from './pages/MyReservations';
+import ReservationDetails from './pages/ReservationDetails';
+import ReservationConfirmation from './pages/ReservationConfirmation';
 import SignIn from './pages/SignIn';
 import EventDetails from './pages/EventDetails';
 import SignUp from './pages/SignUp';
@@ -15,24 +19,28 @@ import './App.css'
 
 function App() {
 
-  return(
+  return (
     <BrowserRouter>
-     <Layout>
-      <Routes>
-        <Route path="/" element={<Home/>}/>
-        <Route path="/categories" element={<Categories/>}/>
-        <Route path="/services" element={<Services/>}/>
-        <Route path="/contact" element={<Contact/>}/>
-        <Route path="/sign-in" element={<SignIn/>}/>
-        <Route path="/sign-up" element={<SignUp/>}/>
-        <Route path="/event/:id" element={<EventDetails/>}/>
-        <Route path="/profile" element={<Profile/>}/>
-        <Route path="/cart" element={<Cart/>}/>
-      </Routes>
-     </Layout>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/reserve" element={<Reserve />} />
+          <Route path="/reserve/confirmation/:id" element={<ReservationConfirmation />} />
+          <Route path="/reserve/:id" element={<ReservationDetails />} />
+          <Route path="/my-reservations" element={<MyReservations />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/event/:id" element={<EventDetails />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/cart" element={<Cart />} />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   )
-  
+
 }
 
 export default App
