@@ -1,22 +1,29 @@
-// src/components/DiscountBanner.jsx
 import { useState, useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebase"; // adjust the path if needed
+
 
 const DiscountBanner = () => {
   const [showBanner, setShowBanner] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check user login state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsLoggedIn(!!user); // true if user exists, false otherwise
-    });
+    const token = localStorage.getItem("token");
+    // Si hay token, asumimos que está logueado 
+    setIsLoggedIn(!!token);
 
-    return () => unsubscribe();
+    // Escuchar cambios en el localStorage para actualizar el estado
+    const handleStorageChange = (e) => {
+      if (e.key === "token") {
+        setIsLoggedIn(!!e.newValue);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
-  // Don't render the banner if user is logged in or banner is dismissed
   if (!showBanner || isLoggedIn) {
     return null;
   }
@@ -38,4 +45,3 @@ const DiscountBanner = () => {
 };
 
 export default DiscountBanner;
-

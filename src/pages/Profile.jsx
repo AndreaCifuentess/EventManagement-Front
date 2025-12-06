@@ -1,13 +1,12 @@
 // src/pages/Profile.jsx
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { useAuth } from "../hooks/useAuth";
+import { getUserProfile, getUserReservations, getUserPayments } from "../api/user";
 
 export default function Profile() {
-    const [user, setUser] = useState(null);
+    const { user, logout, isAuthenticated } = useAuth();
     const [userData, setUserData] = useState(null);
     const [reservations, setReservations] = useState([]);
     const [payments, setPayments] = useState([]);
@@ -16,59 +15,41 @@ export default function Profile() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            setUser(currentUser);
-            if (currentUser) {
-                await fetchUserData(currentUser.uid);
-                await fetchUserReservations(currentUser.uid);
-                await fetchUserPayments(currentUser.uid);
+        const fetchUserData = async () => {
+            if (!user) {
+                setIsLoading(false);
+                return;
             }
-            setIsLoading(false);
-        });
 
-        return () => unsubscribe();
-    }, []);
-
-    const fetchUserData = async (userId) => {
-        try {
-            const userDoc = await getDoc(doc(db, "users", userId));
-            if (userDoc.exists()) {
-                setUserData(userDoc.data());
+            try {
+                setIsLoading(true);
+                
+                // Obtener datos del perfil
+                const profileResponse = await getUserProfile();
+                setUserData(profileResponse.data);
+                
+                // Obtener reservas del usuario
+                const reservationsResponse = await getUserReservations();
+                setReservations(reservationsResponse.data || []);
+                
+                // Obtener pagos del usuario
+                const paymentsResponse = await getUserPayments();
+                setPayments(paymentsResponse.data || []);
+                
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                toast.error("Error al cargar los datos del perfil");
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            console.error("Error fetching user data:", error);
-        }
-    };
+        };
 
-    const fetchUserReservations = async (userId) => {
-        try {
-            const q = query(collection(db, "reserves"), where("client.id", "==", userId));
-            const querySnapshot = await getDocs(q);
-            const reservationsData = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setReservations(reservationsData);
-        } catch (error) {
-            console.error("Error fetching reservations:", error);
-        }
-    };
-
-    const fetchUserPayments = async (userId) => {
-        try {
-            const userDoc = await getDoc(doc(db, "users", userId));
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                setPayments(userData.payments || []);
-            }
-        } catch (error) {
-            console.error("Error fetching payments:", error);
-        }
-    };
+        fetchUserData();
+    }, [user]);
 
     const handleLogout = async () => {
         try {
-            await signOut(auth);
+            logout(); 
             toast.success("¡Sesión cerrada exitosamente!");
             navigate("/");
         } catch (error) {
@@ -77,14 +58,15 @@ export default function Profile() {
     };
 
     const calculateTotalSpent = () => {
-        return payments.reduce((total, payment) => total + (payment.totalCost || 0), 0);
+        return payments.reduce((total, payment) => total + (payment.total || payment.totalCost || 0), 0);
     };
 
     const getUpcomingEvents = () => {
         const today = new Date();
-        return reservations.filter(reservation => 
-            new Date(reservation.dates?.[0]) >= today
-        );
+        return reservations.filter(reservation => {
+            const eventDate = reservation.date || reservation.eventDate || reservation.dates?.[0];
+            return eventDate && new Date(eventDate) >= today;
+        });
     };
 
     if (isLoading) {
@@ -98,7 +80,7 @@ export default function Profile() {
         );
     }
 
-    if (!user) {
+    if (!isAuthenticated || !user) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
@@ -107,7 +89,7 @@ export default function Profile() {
                             <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
                         </svg>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Usuario no encontrado</h2>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Acceso no autorizado</h2>
                     <p className="text-gray-600 mb-4">Inicia sesión para ver tu perfil</p>
                     <button 
                         onClick={() => navigate("/sign-in")}
@@ -131,7 +113,7 @@ export default function Profile() {
                         <div className="flex flex-col md:flex-row items-center gap-6">
                             <div className="relative">
                                 <img
-                                    src={"https://i.pinimg.com/474x/90/9b/85/909b8550f50619a61b66f820d0bbb8f0.jpg"}
+                                    src={userData?.profileImage || "https://i.pinimg.com/474x/90/9b/85/909b8550f50619a61b66f820d0bbb8f0.jpg"}
                                     alt="User"
                                     className="w-24 h-24 rounded-full border-4 border-white/80 object-cover shadow-lg"
                                 />
@@ -139,9 +121,9 @@ export default function Profile() {
                             
                             <div className="text-center md:text-left flex-1">
                                 <h1 className="text-3xl font-bold mb-2">
-                                    {user.displayName || userData?.name || "Usuario"}
+                                    {userData?.fullName || userData?.name || user?.fullName || "Usuario"}
                                 </h1>
-                                <p className="text-white/80">{user.email}</p>
+                                <p className="text-white/80">{user?.email}</p>
                                 <p className="text-white/60">{userData?.phone || "Teléfono no registrado"}</p>
                             </div>
 
@@ -195,17 +177,17 @@ export default function Profile() {
                                 <h3 className="text-xl font-bold text-gray-800 mb-4">Próximos Eventos</h3>
                                 {upcomingEvents.length > 0 ? (
                                     <div className="space-y-4">
-                                        {upcomingEvents.slice(0, 3).map((reservation) => (
-                                            <div key={reservation.id} className="bg-white rounded-xl p-4 shadow-sm">
+                                        {upcomingEvents.slice(0, 3).map((reservation, index) => (
+                                            <div key={reservation.id || index} className="bg-white rounded-xl p-4 shadow-sm">
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <h4 className="font-semibold text-gray-800">{reservation.event?.type}</h4>
+                                                        <h4 className="font-semibold text-gray-800">{reservation.eventType || reservation.event?.type || "Evento"}</h4>
                                                         <p className="text-sm text-gray-600">
-                                                            {reservation.dates?.[0] && new Date(reservation.dates[0]).toLocaleDateString('es-ES')}
+                                                            {reservation.date && new Date(reservation.date).toLocaleDateString('es-ES')}
                                                         </p>
                                                     </div>
                                                     <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                                                        ${reservation.totalCost || 0}
+                                                        ${reservation.total || reservation.totalCost || 0}
                                                     </span>
                                                 </div>
                                             </div>
@@ -222,16 +204,18 @@ export default function Profile() {
                                 {payments.length > 0 ? (
                                     <div className="space-y-4">
                                         {payments.slice(0, 3).map((payment, index) => (
-                                            <div key={index} className="bg-white rounded-xl p-4 shadow-sm">
+                                            <div key={payment.id || index} className="bg-white rounded-xl p-4 shadow-sm">
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <h4 className="font-semibold text-gray-800">Pago #{payment.id?.slice(0, 8)}</h4>
+                                                        <h4 className="font-semibold text-gray-800">
+                                                            Pago #{payment.id?.slice(0, 8) || `P${index + 1}`}
+                                                        </h4>
                                                         <p className="text-sm text-gray-600">
-                                                            {payment.coveredServices?.length || 0} servicios
+                                                            {payment.description || `${payment.services?.length || 0} servicios`}
                                                         </p>
                                                     </div>
                                                     <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                                                        ${payment.totalCost || 0}
+                                                        ${payment.total || payment.totalCost || 0}
                                                     </span>
                                                 </div>
                                             </div>
@@ -253,13 +237,19 @@ export default function Profile() {
                                         <div key={reservation.id} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-gray-800">{reservation.event?.type}</h3>
-                                                    <p className="text-gray-600">Establecimiento: {reservation.establishment?.name}</p>
+                                                    <h3 className="text-lg font-bold text-gray-800">
+                                                        {reservation.eventType || reservation.event?.type || "Reserva"}
+                                                    </h3>
+                                                    <p className="text-gray-600">
+                                                        {reservation.establishmentName || reservation.establishment?.name || "Sin establecimiento"}
+                                                    </p>
                                                 </div>
                                                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                                                     reservation.status === "confirmed" 
                                                         ? "bg-green-100 text-green-800"
-                                                        : "bg-yellow-100 text-yellow-800"
+                                                        : reservation.status === "pending"
+                                                        ? "bg-yellow-100 text-yellow-800"
+                                                        : "bg-gray-100 text-gray-800"
                                                 }`}>
                                                     {reservation.status || "Pendiente"}
                                                 </span>
@@ -267,18 +257,18 @@ export default function Profile() {
                                             
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Fechas</p>
+                                                    <p className="text-sm text-gray-500">Fecha</p>
                                                     <p className="font-medium">
-                                                        {reservation.dates?.[0] && new Date(reservation.dates[0]).toLocaleDateString('es-ES')}
+                                                        {reservation.date && new Date(reservation.date).toLocaleDateString('es-ES')}
                                                     </p>
                                                 </div>
                                                 <div>
                                                     <p className="text-sm text-gray-500">Invitados</p>
-                                                    <p className="font-medium">{reservation.guestNumber || 0}</p>
+                                                    <p className="font-medium">{reservation.guestCount || reservation.guestNumber || 0}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-sm text-gray-500">Costo Total</p>
-                                                    <p className="font-medium text-green-600">${reservation.totalCost || 0}</p>
+                                                    <p className="font-medium text-green-600">${reservation.total || reservation.totalCost || 0}</p>
                                                 </div>
                                             </div>
 
@@ -286,21 +276,15 @@ export default function Profile() {
                                             <div className="border-t pt-4">
                                                 <h4 className="font-semibold text-gray-800 mb-2">Servicios Contratados:</h4>
                                                 <div className="flex flex-wrap gap-2">
-                                                    {reservation.services?.entertainment?.map((service, idx) => (
-                                                        <span key={idx} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
-                                                            Entretenimiento
-                                                        </span>
-                                                    ))}
-                                                    {reservation.services?.decoration && (
-                                                        <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded text-xs">
-                                                            Decoración
-                                                        </span>
+                                                    {reservation.services && Array.isArray(reservation.services) ? (
+                                                        reservation.services.map((service, idx) => (
+                                                            <span key={idx} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
+                                                                {service.name || `Servicio ${idx + 1}`}
+                                                            </span>
+                                                        ))
+                                                    ) : (
+                                                        <p className="text-gray-500 text-sm">No hay servicios especificados</p>
                                                     )}
-                                                    {reservation.services?.catering?.map((service, idx) => (
-                                                        <span key={idx} className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">
-                                                            Catering
-                                                        </span>
-                                                    ))}
                                                 </div>
                                             </div>
                                         </div>
@@ -326,21 +310,27 @@ export default function Profile() {
                             {payments.length > 0 ? (
                                 <div className="space-y-4">
                                     {payments.map((payment, index) => (
-                                        <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                                        <div key={payment.id || index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                                             <div className="flex justify-between items-center mb-4">
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-gray-800">Pago #{payment.id?.slice(0, 8) || `P${index + 1}`}</h3>
+                                                    <h3 className="text-lg font-bold text-gray-800">
+                                                        Pago #{payment.id?.slice(0, 8) || `P${index + 1}`}
+                                                    </h3>
                                                     <p className="text-gray-600">
-                                                        {payment.coveredServices?.join(", ") || "Servicios varios"}
+                                                        {payment.description || "Pago de servicios"}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {payment.date && new Date(payment.date).toLocaleDateString('es-ES')}
                                                     </p>
                                                 </div>
                                                 <span className="text-2xl font-bold text-green-600">
-                                                    ${payment.totalCost || 0}
+                                                    ${payment.total || payment.totalCost || 0}
                                                 </span>
                                             </div>
-                                            <div className="flex justify-between text-sm text-gray-500">
-                                                <span>Fecha del pago</span>
-                                                <span>Completado</span>
+                                            <div className="text-sm text-gray-500">
+                                                Estado: <span className={`font-medium ${payment.status === "completed" ? "text-green-600" : "text-yellow-600"}`}>
+                                                    {payment.status === "completed" ? "Completado" : "Pendiente"}
+                                                </span>
                                             </div>
                                         </div>
                                     ))}
@@ -362,7 +352,7 @@ export default function Profile() {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
                                             <input 
                                                 type="text" 
-                                                defaultValue={user.displayName || userData?.name}
+                                                defaultValue={userData?.fullName || userData?.name}
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                             />
                                         </div>
@@ -378,7 +368,7 @@ export default function Profile() {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                                             <input 
                                                 type="email" 
-                                                defaultValue={user.email}
+                                                defaultValue={user?.email}
                                                 disabled
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"
                                             />
@@ -387,13 +377,13 @@ export default function Profile() {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Usuario</label>
                                             <input 
                                                 type="text" 
-                                                defaultValue={userData?.type || "Cliente"}
+                                                defaultValue={userData?.role || userData?.type || "Cliente"}
                                                 disabled
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100"
                                             />
                                         </div>
-                                    </div >
-                                    <button className=" mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                                    </div>
+                                    <button className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
                                         Guardar Cambios
                                     </button>
                                 </div>

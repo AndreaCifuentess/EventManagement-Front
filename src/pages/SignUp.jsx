@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { registerRequest } from "../api/auth";
 
@@ -32,7 +31,6 @@ export default function SignUp() {
         }));
     };
 
-    // Snackbar 
    
     const showSnackbar = (message, type = "success") => {
         setSnackbar({
@@ -59,18 +57,18 @@ export default function SignUp() {
     
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("🎯 Formulario enviándose"); 
+        console.log(" Formulario enviándose"); 
         setIsLoading(true);
         
         try {
-            console.log("📝 Datos a enviar:", { 
+            console.log(" Datos a enviar:", { 
                 fullName: formData.fullName,
                 email: formData.email,
                 phone: formData.phone,
                 city: formData.city
             });
         
-            await registerRequest.register({
+            await registerRequest({
                 fullName: formData.fullName,
                 email: formData.email,
                 password: formData.password,
@@ -103,10 +101,6 @@ export default function SignUp() {
         }
     };
 
-    // Google sign-in
-    const handleGoogleSignIn = async () => {
-        showSnackbar("Registro con Google no disponible temporalmente", "error");
-    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center p-4">
@@ -301,25 +295,7 @@ export default function SignUp() {
                         </button>
                     </form>
 
-                    {/* Divider y Google */}
-                    <div className="flex items-center my-8">
-                        <div className="flex-grow border-t border-gray-300"></div>
-                        <span className="mx-4 text-gray-500 text-sm font-medium">O regístrate con</span>
-                        <div className="flex-grow border-t border-gray-300"></div>
-                    </div>
-
-                    {/* OAuth Buttons */}
-                    <div className="space-y-4">
-                        <button
-                            type="button"
-                            onClick={handleGoogleSignIn}
-                            disabled={isLoading}
-                            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium shadow-sm hover:shadow-md hover:border-gray-400 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:transform-none"
-                        >
-                            <FcGoogle className="text-xl" />
-                            Google
-                        </button>
-                    </div>
+                
 
                     {/* Login Link */}
                     <p className="mt-8 text-center text-sm text-gray-600">

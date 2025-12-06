@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Categories from './pages/Categories';
 import Contact from './pages/Contact';
 
@@ -11,28 +11,57 @@ import SignUp from './pages/SignUp';
 import Profile from './pages/Profile';
 import Cart from './pages/Cart';
 
+import AdminRoute from './components/AdminRoute';
+import AdminLayout from './pages/admin/Layout';
+import AdminDashboard from './pages/admin/dashboard';
+import EventsList from './pages/admin/events/index';
+import CreateEvent from './pages/admin/events/create';
+import EditEvent from './pages/admin/events/edit';
 import './App.css'
 
 function App() {
-
-  return(
-    <BrowserRouter>
-     <Layout>
+  return (
+    <Layout>
       <Routes>
-        <Route path="/" element={<Home/>}/>
-        <Route path="/categories" element={<Categories/>}/>
-        <Route path="/services" element={<Services/>}/>
-        <Route path="/contact" element={<Contact/>}/>
-        <Route path="/sign-in" element={<SignIn/>}/>
-        <Route path="/sign-up" element={<SignUp/>}/>
-        <Route path="/event/:id" element={<EventDetails/>}/>
-        <Route path="/profile" element={<Profile/>}/>
-        <Route path="/cart" element={<Cart/>}/>
+        {/* Rutas públicas */}
+        <Route path="/" element={<Home />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/event/:id" element={<EventDetails />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/cart" element={<Cart />} />
+
+        {/* ✅ RUTAS DE ADMINISTRACIÓN - ANIDADAS */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+        
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          
+           {/* Rutas para Eventos */}
+          <Route path="events" element={<EventsList />} />
+          <Route path="events/create" element={<CreateEvent />} />
+          <Route path="events/edit/:id" element={<EditEvent />} />
+
+          {/* Rutas para Establecimientos */}
+          <Route path="establishments" element={<EstablishmentsList />} />
+          <Route path="establishments/create" element={<CreateEstablishment />} />
+          <Route path="establishments/edit/:id" element={<EditEstablishment />} />
+          
+         
+        </Route>
       </Routes>
-     </Layout>
-    </BrowserRouter>
-  )
-  
+    </Layout>
+  );
 }
 
-export default App
+export default App;

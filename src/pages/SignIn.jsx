@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebook, FaEye, FaEyeSlash } from "react-icons/fa";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "../firebase";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { loginRequest } from "../api/auth"; 
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { useAuth } from "../hooks/useAuth";
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const { login } = useAuth(); 
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -23,38 +24,50 @@ export default function SignIn() {
     }));
   };
 
-  // Email/Password Sign-in
-  const handleEmailSignIn = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      toast.success("¡Bienvenido de vuelta!");
-      navigate("/");
-    } catch (error) {
-      toast.error("Credenciales inválidas");
-      console.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
+const handleEmailSignIn = async (e) => {
+  e.preventDefault();
+  console.log(" Iniciando login...");
+  
+  if (!formData.email || !formData.password) {
+    toast.error("Por favor completa todos los campos");
+    setIsLoading(false);
+    return;
+  }
 
-  // Google Sign-in
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast.success("¡Inicio de sesión exitoso con Google!");
-      navigate("/");
-    } catch (error) {
-      toast.error("Error al iniciar con Google");
-      console.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    const response = await loginRequest(formData.email, formData.password);
+    console.log(" Respuesta completa del login:", response.data);
+   
+    if (response.data.token && response.data.user) {
 
+      login(response.data.token, response.data.user);
+      
+     
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      
+      console.log(" Redirigiendo según tipo:", response.data.user.type);
+      
+      // Redirigir según el tipo
+      if (response.data.user.type === "ADMIN") {
+        toast.success("¡Bienvenido Administrador!");
+        navigate("/admin/dashboard");
+      } else {
+        toast.success("¡Bienvenido de vuelta!");
+        navigate("/");
+      }
+    } else {
+      toast.error("Error: respuesta del servidor incompleta");
+    }
+  } catch (error) {
+       console.log(" Errores");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+ 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center p-4">
       {/* Background Decorations */}
@@ -162,28 +175,7 @@ export default function SignIn() {
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
-          {/* OAuth Buttons */}
-          <div className="space-y-4">
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium shadow-sm hover:shadow-md hover:border-gray-400 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:transform-none"
-            >
-              <FcGoogle className="text-xl" />
-              Google
-            </button>
-
-            <button
-              type="button"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white py-3 px-4 rounded-xl font-medium shadow-sm hover:shadow-md hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:transform-none"
-            >
-              <FaFacebook className="text-xl" />
-              Facebook
-            </button>
-          </div>
-
+        
           {/* Sign Up Link */}
           <p className="mt-8 text-center text-sm text-gray-600">
             ¿No tienes una cuenta?{" "}
@@ -196,25 +188,6 @@ export default function SignIn() {
           </p>
         </div>
       </div>
-
-      {/* Add this to your CSS or Tailwind config for animations */}
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   );
 }
