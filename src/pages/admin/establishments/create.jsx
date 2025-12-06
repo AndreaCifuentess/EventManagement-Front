@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState, useRef,  useEffect  } from "react";
 import { useNavigate } from "react-router-dom";
 import { createEstablishment } from "../../../api/establishments";
 import useSnackbar from "../../../hooks/useSnackbar";
 
-export default function CreateEstablishment() {s
+export default function CreateEstablishment() {
   const navigate = useNavigate();
   const isMounted = useRef(true);
   const [creating, setCreating] = useState(false);

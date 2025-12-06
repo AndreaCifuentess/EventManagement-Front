@@ -17,6 +17,10 @@ import AdminDashboard from './pages/admin/dashboard';
 import EventsList from './pages/admin/events/index';
 import CreateEvent from './pages/admin/events/create';
 import EditEvent from './pages/admin/events/edit';
+
+import CreateEstablishment from './pages/admin/establishments/create';
+import  EstablishmentsList from './pages/admin/establishments/index';
+
 import './App.css'
 
 function App() {
@@ -55,7 +59,7 @@ function App() {
           {/* Rutas para Establecimientos */}
           <Route path="establishments" element={<EstablishmentsList />} />
           <Route path="establishments/create" element={<CreateEstablishment />} />
-          <Route path="establishments/edit/:id" element={<EditEstablishment />} />
+         
           
          
         </Route>
