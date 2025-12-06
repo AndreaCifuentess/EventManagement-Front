@@ -66,9 +66,27 @@ export default function Reserve() {
       return;
     }
 
+    // Validar que hay al menos una fecha válida
+    const validDates = form.dates.filter(Boolean);
+    if (validDates.length === 0) {
+      toast.error("Debe seleccionar al menos una fecha.");
+      return;
+    }
+
+    // Validar que todas las fechas son futuras
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (const dateStr of validDates) {
+      const selectedDate = new Date(dateStr);
+      if (selectedDate < today) {
+        toast.error("No se pueden reservar fechas pasadas. Selecciona una fecha futura.");
+        return;
+      }
+    }
+
     const payload = {
       guestNumber: Number(form.guestNumber),
-      dates: form.dates.filter(Boolean),
+      dates: validDates,
       eventId: String(form.eventId),
       establishmentId: String(form.establishmentId),
       comments: form.comments,
@@ -119,6 +137,15 @@ export default function Reserve() {
       }
     } catch (err) {
       console.error(err);
+      const status = err?.response?.status;
+      
+      // Manejo de sesión expirada
+      if (status === 401) {
+        toast.error('Sesión expirada. Por favor inicia sesión de nuevo.');
+        navigate('/sign-in');
+        return;
+      }
+      
       const message = err?.response?.data?.message || "Error al crear la reserva.";
       toast.error(message);
     } finally {
@@ -144,6 +171,15 @@ export default function Reserve() {
             setOriginalServices(data.services || null);
         } catch (err) {
           console.error('Error cargando reserva para edición', err);
+          const status = err?.response?.status;
+          
+          // Manejo de sesión expirada
+          if (status === 401) {
+            toast.error('Sesión expirada. Por favor inicia sesión de nuevo.');
+            navigate('/sign-in');
+            return;
+          }
+          
           toast.error('No se pudo cargar la reserva para editar');
         }
       }
