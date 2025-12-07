@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createEvent } from "../../../api/events";
-import Snackbar from "../../../components/Snackbar";
+import useSnackbar from "../../../hooks/useSnackbar"; // Cambiar esta importación
 
 export default function CreateEvent() {
   const navigate = useNavigate();
@@ -10,11 +10,9 @@ export default function CreateEvent() {
   const [formData, setFormData] = useState({
     type: "",
   });
-  const [snackbar, setSnackbar] = useState({
-    message: "",
-    type: "success",
-    show: false,
-  });
+  
+  // Usar el hook en lugar del estado local
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,28 +24,18 @@ export default function CreateEvent() {
     setLoading(true);
 
     try {
-      // Solo envía el formData directamente
       await createEvent(formData);
       
-      // Mostrar snackbar de éxito
-      setSnackbar({
-        message: "✅ Evento creado exitosamente",
-        type: "success",
-        show: true,
-      });
+      // Usar el hook para mostrar éxito
+      showSnackbar("Evento creado exitosamente", "success");
       
-      // Redirigir después de 2 segundos para que el usuario vea el mensaje
       setTimeout(() => {
         navigate("/admin/events");
       }, 2000);
       
     } catch (error) {
-      // Mostrar snackbar de error
-      setSnackbar({
-        message: `❌ ${error.response?.data?.message || "Error al crear el evento"}`,
-        type: "error",
-        show: true,
-      });
+      // Usar el hook para mostrar error
+      showSnackbar(error.response?.data?.message || "Error al crear el evento", "error");
       
       console.error(error);
     } finally {
@@ -55,20 +43,10 @@ export default function CreateEvent() {
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({ ...prev, show: false }));
-  };
-
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Snackbar para mostrar mensajes */}
-      <Snackbar
-        message={snackbar.message}
-        type={snackbar.type}
-        show={snackbar.show}
-        onClose={handleCloseSnackbar}
-        duration={4000}
-      />
+      {/* Reemplazar el componente Snackbar por SnackbarComponent del hook */}
+      <SnackbarComponent position="bottom" />
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Crear Nuevo Tipo de Evento</h1>

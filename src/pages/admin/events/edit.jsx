@@ -45,7 +45,7 @@ export default function EditEvent() {
       }
       
     } catch (error) {
-      console.error("❌ Error al cargar evento:", error);
+      console.error("Error al cargar evento:", error);
       
       if (isMounted.current) {
         showSnackbar(error.message || "Error al cargar el evento", "error");
@@ -81,7 +81,7 @@ export default function EditEvent() {
       const payload = { type: formData.type.trim() };
       
       await updateEvent(id, payload);
-      showSnackbar("✅ Evento actualizado exitosamente", "success");
+      showSnackbar(" Evento actualizado exitosamente", "success");
       
       setTimeout(() => {
         if (isMounted.current) {
@@ -90,7 +90,7 @@ export default function EditEvent() {
       }, 1500);
       
     } catch (error) {
-      console.error("❌ Error al actualizar:", error);
+      console.error(" Error al actualizar:", error);
       
       if (isMounted.current) {
         showSnackbar(error.response?.data?.message || "Error al actualizar el evento", "error");

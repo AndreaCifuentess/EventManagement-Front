@@ -19,7 +19,17 @@ import CreateEvent from './pages/admin/events/create';
 import EditEvent from './pages/admin/events/edit';
 
 import CreateEstablishment from './pages/admin/establishments/create';
-import  EstablishmentsList from './pages/admin/establishments/index';
+import EstablishmentsList from './pages/admin/establishments/index';
+import EditEstablishment from './pages/admin/establishments/edit';
+
+import CreateEntertainment from './pages/admin/entertainment/create';
+import EntertainmentsList from './pages/admin/entertainment/index';
+import EditEntertainment from './pages/admin/entertainment/edit';
+
+
+import CreateCatering from './pages/admin/catering/create';
+import CateringsList from './pages/admin/catering/index';
+import EditCatering from './pages/admin/catering/edit';
 
 import './App.css'
 
@@ -59,8 +69,17 @@ function App() {
           {/* Rutas para Establecimientos */}
           <Route path="establishments" element={<EstablishmentsList />} />
           <Route path="establishments/create" element={<CreateEstablishment />} />
-         
-          
+          <Route path="establishments/edit/:id" element={<EditEstablishment />} />
+
+           {/* Rutas para Entretenimiento */}
+          <Route path="entertainment" element={<EntertainmentsList />} />
+          <Route path="entertainment/create" element={<CreateEntertainment />} />
+          <Route path="entertainment/edit/:id" element={<EditEntertainment />} />
+
+           {/* Rutas para Catering */}
+          <Route path="catering" element={<CateringsList />} />
+          <Route path="catering/create" element={<CreateCatering />} />
+          <Route path="catering/edit/:id" element={<EditCatering />} />
          
         </Route>
       </Routes>

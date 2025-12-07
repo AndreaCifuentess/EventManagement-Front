@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { registerRequest } from "../api/auth";
-
-
+import useSnackbar from "../hooks/useSnackbar"; 
 export default function SignUp() {
     const [formData, setFormData] = useState({
         fullName: "",
@@ -14,14 +13,9 @@ export default function SignUp() {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: "",
-        type: "success" 
-    });
-
+    
     const navigate = useNavigate();
-
+    const { showSnackbar, SnackbarComponent } = useSnackbar(); 
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -31,33 +25,9 @@ export default function SignUp() {
         }));
     };
 
-   
-    const showSnackbar = (message, type = "success") => {
-        setSnackbar({
-            open: true,
-            message,
-            type
-        });
-
-    
-        if (type === "success") {
-            setTimeout(() => {
-                hideSnackbar();
-            }, 5000);
-        }
-    };
-
-    const hideSnackbar = () => {
-        setSnackbar(prev => ({
-            ...prev,
-            open: false
-        }));
-    };
-
-    
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(" Formulario enviándose"); 
+       
         setIsLoading(true);
         
         try {
@@ -77,7 +47,7 @@ export default function SignUp() {
                 type: "CLIENTE"
             });
             
-            showSnackbar(`¡Bienvenido ${formData.fullName}! 🎉 Cuenta creada exitosamente`, "success");
+            showSnackbar(`¡Bienvenido ${formData.fullName}!  Cuenta creada exitosamente`, "success");
             
             // Limpiar formulario
             setFormData({
@@ -88,60 +58,43 @@ export default function SignUp() {
                 city: ""
             });
             
-            // Redirigir a la página de inicio de sesión después de 5 segundos
             setTimeout(() => {
                 navigate("/sign-in");
-            }, 5000);
+            }, 3000);
             
         } catch (error) {
-            console.error("Error en registro:", error);
-            showSnackbar(error.response?.data?.message || "Error al crear la cuenta", "error");
+            console.error(" Error en registro:", error);
+            
+            let errorMessage = "Error al crear la cuenta";
+            if (error.response) {
+                errorMessage = error.response.data?.message || 
+                              error.response.data?.error || 
+                              errorMessage;
+            } else if (error.request) {
+                errorMessage = "No se pudo conectar con el servidor";
+            }
+            showSnackbar(errorMessage, "error");
         } finally {
             setIsLoading(false);
         }
     };
 
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !isLoading) {
+            handleSubmit(e);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100 flex items-center justify-center p-4">
+            <SnackbarComponent position="top-right" /> 
+            
             {/* Background Decorations */}
-            <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
                 <div className="absolute top-40 left-40 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
             </div>
-
-            {/* Snackbar Personalizado */}
-            {snackbar.open && (
-                <div className={`fixed top-4 right-4 z-50 transform transition-all duration-300 ${
-                    snackbar.open ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-                }`}>
-                    <div className={`max-w-md rounded-xl shadow-lg p-4 border-l-4 ${
-                        snackbar.type === 'success' 
-                            ? 'bg-green-50 border-green-500 text-green-800' 
-                            : 'bg-red-50 border-red-500 text-red-800'
-                    }`}>
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                {snackbar.type === 'success' ? (
-                                    <span className="text-green-500 text-xl">✅</span>
-                                ) : (
-                                    <span className="text-red-500 text-xl">❌</span>
-                                )}
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm font-medium">{snackbar.message}</p>
-                            </div>
-                            <button
-                                onClick={hideSnackbar}
-                                className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <span className="text-lg">×</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <div className="relative w-full max-w-md">
                 {/* Card Container */}
@@ -170,9 +123,11 @@ export default function SignUp() {
                                     name="fullName"
                                     value={formData.fullName}
                                     onChange={handleChange}
+                                    onKeyPress={handleKeyPress}
                                     placeholder="Tu nombre completo"
                                     required
-                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -188,9 +143,11 @@ export default function SignUp() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
+                                    onKeyPress={handleKeyPress}
                                     placeholder="tucorreo@ejemplo.com"
                                     required
-                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -206,9 +163,11 @@ export default function SignUp() {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
+                                    onKeyPress={handleKeyPress}
                                     placeholder="3001234567"
                                     required
-                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -224,9 +183,11 @@ export default function SignUp() {
                                     name="city"
                                     value={formData.city}
                                     onChange={handleChange}
+                                    onKeyPress={handleKeyPress}
                                     placeholder="Tu ciudad"
                                     required
-                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -242,16 +203,20 @@ export default function SignUp() {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
+                                    onKeyPress={handleKeyPress}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 pr-12"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 pr-12 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    disabled={isLoading}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                                 >
-                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                    {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                                 </button>
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
@@ -264,15 +229,24 @@ export default function SignUp() {
                             <input
                                 type="checkbox"
                                 required
-                                className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 border-gray-300 mt-1"
+                                disabled={isLoading}
+                                className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 border-gray-300 mt-1 disabled:opacity-50"
                             />
                             <label className="text-sm text-gray-600">
                                 Acepto los{" "}
-                                <Link to="/terms" className="text-purple-600 hover:text-purple-500 font-medium">
+                                <Link 
+                                    to="/terms" 
+                                    className="text-purple-600 hover:text-purple-500 font-medium"
+                                    tabIndex={isLoading ? -1 : 0}
+                                >
                                     Términos y Condiciones
                                 </Link>{" "}
                                 y la{" "}
-                                <Link to="/privacy" className="text-purple-600 hover:text-purple-500 font-medium">
+                                <Link 
+                                    to="/privacy" 
+                                    className="text-purple-600 hover:text-purple-500 font-medium"
+                                    tabIndex={isLoading ? -1 : 0}
+                                >
                                     Política de Privacidad
                                 </Link>
                             </label>
@@ -282,7 +256,7 @@ export default function SignUp() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:transform-none disabled:hover:shadow-lg"
+                            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg"
                         >
                             {isLoading ? (
                                 <div className="flex items-center justify-center">
@@ -295,14 +269,13 @@ export default function SignUp() {
                         </button>
                     </form>
 
-                
-
                     {/* Login Link */}
                     <p className="mt-8 text-center text-sm text-gray-600">
                         ¿Ya tienes una cuenta?{" "}
                         <Link 
                             to="/sign-in" 
                             className="text-purple-600 hover:text-purple-500 font-semibold transition-colors"
+                            tabIndex={isLoading ? -1 : 0}
                         >
                             Inicia sesión aquí
                         </Link>

@@ -65,21 +65,25 @@ export default function EventsList() {
       eventType: "",
     });
   };
-
+  
   const confirmDelete = async () => {
     if (!deleteModal.eventId) return;
-    
     try {
       await deleteEvent(deleteModal.eventId);
       setEvents(events.filter(event => event.id !== deleteModal.eventId));
       showSnackbar(`Evento "${deleteModal.eventType}" eliminado correctamente`, "success");
     } catch (error) {
-      showSnackbar("Error al eliminar el evento", "error");
-      console.error(error);
+
+       let errorMessage = "Error al eliminar el evento";
+       if (error.response && error.response.data) {
+        errorMessage = error.response.data.message || error.response.data.error || errorMessage;
+      }
+      showSnackbar(errorMessage, "error");
     } finally {
       closeDeleteModal();
     }
   };
+  
 
   const filteredEvents = events.filter(event =>
     event.type.toLowerCase().includes(searchTerm.toLowerCase())
