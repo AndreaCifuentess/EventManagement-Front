@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../hooks/useAuth";
-import { getUserProfile, getUserReservations, getUserPayments } from "../api/user";
+import { getUserPayments } from "../api/user";
+import { getReservations } from "../api/reservation";
+import ReservationCard from "../components/reservation/reservationCard";
 
 export default function Profile() {
     const { user, logout, isAuthenticated } = useAuth();
-    const [userData, setUserData] = useState(null);
-    const [reservations, setReservations] = useState([]);
+    const [userData, ] = useState(null);
+    const [reservations] = useState([]);
     const [payments, setPayments] = useState([]);
     const [activeTab, setActiveTab] = useState("overview");
     const [isLoading, setIsLoading] = useState(true);
@@ -24,13 +26,13 @@ export default function Profile() {
             try {
                 setIsLoading(true);
                 
-                // Obtener datos del perfil
-                const profileResponse = await getUserProfile();
-                setUserData(profileResponse.data);
                 
                 // Obtener reservas del usuario
-                const reservationsResponse = await getUserReservations();
-                setReservations(reservationsResponse.data || []);
+                const reservationsResponse = await getReservations();
+                console.log("Reservas recibidas:", reservationsResponse);
+                console.log("Tipo de datos:", typeof reservationsResponse.data);
+                console.log("Es array?:", Array.isArray(reservationsResponse.data));
+                console.log("Cantidad:", reservationsResponse.data?.length || 0);
                 
                 // Obtener pagos del usuario
                 const paymentsResponse = await getUserPayments();
@@ -53,7 +55,7 @@ export default function Profile() {
             toast.success("¡Sesión cerrada exitosamente!");
             navigate("/");
         } catch (error) {
-            toast.error("Error al cerrar sesión");
+            toast.error("Error al cerrar sesión", error);
         }
     };
 
@@ -228,81 +230,28 @@ export default function Profile() {
                         </div>
                     )}
 
-                    {activeTab === "reservations" && (
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-800 mb-6">Mis Reservas</h2>
-                            {reservations.length > 0 ? (
-                                <div className="space-y-4">
-                                    {reservations.map((reservation) => (
-                                        <div key={reservation.id} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div>
-                                                    <h3 className="text-lg font-bold text-gray-800">
-                                                        {reservation.eventType || reservation.event?.type || "Reserva"}
-                                                    </h3>
-                                                    <p className="text-gray-600">
-                                                        {reservation.establishmentName || reservation.establishment?.name || "Sin establecimiento"}
-                                                    </p>
-                                                </div>
-                                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                                    reservation.status === "confirmed" 
-                                                        ? "bg-green-100 text-green-800"
-                                                        : reservation.status === "pending"
-                                                        ? "bg-yellow-100 text-yellow-800"
-                                                        : "bg-gray-100 text-gray-800"
-                                                }`}>
-                                                    {reservation.status || "Pendiente"}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Fecha</p>
-                                                    <p className="font-medium">
-                                                        {reservation.date && new Date(reservation.date).toLocaleDateString('es-ES')}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Invitados</p>
-                                                    <p className="font-medium">{reservation.guestCount || reservation.guestNumber || 0}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-gray-500">Costo Total</p>
-                                                    <p className="font-medium text-green-600">${reservation.total || reservation.totalCost || 0}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Services Summary */}
-                                            <div className="border-t pt-4">
-                                                <h4 className="font-semibold text-gray-800 mb-2">Servicios Contratados:</h4>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {reservation.services && Array.isArray(reservation.services) ? (
-                                                        reservation.services.map((service, idx) => (
-                                                            <span key={idx} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
-                                                                {service.name || `Servicio ${idx + 1}`}
-                                                            </span>
-                                                        ))
-                                                    ) : (
-                                                        <p className="text-gray-500 text-sm">No hay servicios especificados</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-8">
-                                    <p className="text-gray-500 text-lg">No tienes reservas aún</p>
-                                    <button 
-                                        onClick={() => navigate("/services")}
-                                        className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition-colors"
-                                    >
-                                        Explorar Servicios
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                 {activeTab === "reservations" && (
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6">Mis Reservas</h2>
+                        {reservations.length > 0 ? (
+                            <div className="space-y-4">
+                                {reservations.map((reservation) => (
+                                    <ReservationCard key={reservation.id} reservation={reservation} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500 text-lg">No tienes reservas aún</p>
+                                <button 
+                                    onClick={() => navigate("/services")}
+                                    className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition-colors"
+                                >
+                                    Explorar Servicios
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                     {activeTab === "payments" && (
                         <div>

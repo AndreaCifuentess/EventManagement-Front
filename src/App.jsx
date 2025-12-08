@@ -4,7 +4,6 @@ import Contact from './pages/Contact';
 
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import Services from './pages/Services';
 import SignIn from './pages/SignIn';
 import EventDetails from './pages/EventDetails';
 import SignUp from './pages/SignUp';
@@ -31,6 +30,22 @@ import CreateCatering from './pages/admin/catering/create';
 import CateringsList from './pages/admin/catering/index';
 import EditCatering from './pages/admin/catering/edit';
 
+import AdditionalList from './pages/admin/additional/index';
+import CreateAdditional from './pages/admin/additional/create';
+import EditAdditional from './pages/admin/additional/edit';
+
+import DecorationList from './pages/admin/decoration/index';
+import CreateDecoration from './pages/admin/decoration/create';
+import EditDecoration from './pages/admin/decoration/edit';
+
+import ClientList from './pages/admin/client/clientelist';
+
+import Services from "./pages/Services";
+import CategoryServices from "./pages/CategoriesServices";
+
+import ReservationForm from './pages/ReservationForm';
+
+
 import './App.css'
 
 function App() {
@@ -40,7 +55,10 @@ function App() {
         {/* Rutas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/categories" element={<Categories />} />
+
         <Route path="/services" element={<Services />} />
+        <Route path="/services/:categoryId" element={<CategoryServices />} />
+        
         <Route path="/contact" element={<Contact />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
@@ -48,7 +66,9 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/cart" element={<Cart />} />
 
-        {/* ✅ RUTAS DE ADMINISTRACIÓN - ANIDADAS */}
+        <Route path="/reserve/:serviceId?" element={<ReservationForm />} />
+
+        {/* Rutas admin*/}
         <Route
           path="/admin"
           element={
@@ -80,7 +100,20 @@ function App() {
           <Route path="catering" element={<CateringsList />} />
           <Route path="catering/create" element={<CreateCatering />} />
           <Route path="catering/edit/:id" element={<EditCatering />} />
-         
+
+          {/* Rutas para Adicionales */}
+          <Route path="/admin/additionals" element={<AdditionalList />} />          
+          <Route path="/admin/additionals/create" element={<CreateAdditional />} />  
+          <Route path="/admin/additionals/edit/:id" element={<EditAdditional />} />   
+
+
+          {/* Rutas para decoración */}
+          <Route path="/admin/decoration" element={<DecorationList />} />
+          <Route path="/admin/decoration/create" element={<CreateDecoration />} />
+          <Route path="/admin/decoration/edit/:id" element={<EditDecoration />} />
+                  
+          {/* Rutas para obtener clientes */}  
+          <Route path="/admin/clients" element={<ClientList />} />        
         </Route>
       </Routes>
     </Layout>
