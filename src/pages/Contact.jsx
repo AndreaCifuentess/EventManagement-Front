@@ -78,7 +78,7 @@ export default function Contact() {
                 <span className="inline-block p-3 text-black rounded-full bg-gray-200"><FaLocationDot/></span>
                 <h2 className="mt-4 text-base font-medium text-gray-800">Office</h2>
                 <p className="mt-2 text-sm text-gray-500">Come say hello at our office HQ.</p>
-                <p className="mt-2 text-sm text-blue-500">MITM Ujjain (M.P), India</p>
+                <p className="mt-2 text-sm text-blue-500">Tuluá, Valle del Cauca, Colombia</p>
               </div>
 
               {/* Chat Card */}
@@ -94,7 +94,7 @@ export default function Contact() {
                 <span className="inline-block p-3 text-black rounded-full bg-gray-200"><FaPhone /></span>
                 <h2 className="mt-4 text-base font-medium text-gray-800">Phone</h2>
                 <p className="mt-2 text-sm text-gray-500">Mon–Fri from 8am to 5pm.</p>
-                <p className="mt-2 text-sm text-blue-500">+91 1234567890</p>
+                <p className="mt-2 text-sm text-blue-500">+57 3162561558</p>
               </div>
             </div>
 

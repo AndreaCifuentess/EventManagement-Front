@@ -68,6 +68,11 @@ export default function Navbar() {
           <ul className="flex flex-col items-center space-y-8 text-2xl text-white mb-12">
             <li><Link onClick={closeMenu} to="/" className="hover:text-purple-500 transition-colors">Home</Link></li>
             <li><Link onClick={closeMenu} to="/categories" className="hover:text-purple-500 transition-colors">Categories</Link></li>
+           <li>
+                <a href="#establishments" onClick={closeMenu} className="hover:text-purple-500 transition-colors">
+                  Establishments
+                </a>
+              </li>
             <li><Link onClick={closeMenu} to="/services" className="hover:text-purple-500 transition-colors">Services</Link></li>
             <li><Link onClick={closeMenu} to="/contact" className="hover:text-purple-500 transition-colors">Contact</Link></li>
           </ul>
@@ -83,6 +88,7 @@ export default function Navbar() {
                   Log in
                 </Link>
                 <Link
+
                   onClick={closeMenu}
                   to="/sign-up"
                   className="w-full bg-white text-black px-6 py-3 rounded-full font-medium hover:bg-gray-200 transition-colors text-center"
@@ -132,6 +138,7 @@ export default function Navbar() {
       <ul className="hidden md:flex space-x-8 text-md font-medium text-black">
         <li><Link to="/" className="hover:text-purple-500">Home</Link></li>
         <li><Link to="/categories" className="hover:text-purple-500">Categories</Link></li>
+        <li><Link to="/establishments" className="hover:text-purple-500">Establishments</Link></li>
         <li><Link to="/services" className="hover:text-purple-500">Services</Link></li>
         <li><Link to="/contact" className="hover:text-purple-500">Contact</Link></li>
       </ul>

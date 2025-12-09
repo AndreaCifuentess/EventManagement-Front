@@ -44,10 +44,8 @@ export default function Services() {
                   </p>
                 </div>
 
+                {/* QUITÉ EL P DEL COSTO */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-6">
-                  <p className="text-lg font-bold font-poppins text-zinc-800">
-                    {service.cost}
-                  </p>
                   <Link
                     to={`/event/${service.id}`}
                     className="w-full sm:w-auto border-2 border-black text-black px-6 py-2.5 rounded-full font-medium hover:bg-black hover:text-white transition-colors duration-300 text-center"
@@ -55,6 +53,7 @@ export default function Services() {
                     See Details
                   </Link>
                 </div>
+
               </div>
             </div>
           </div>
