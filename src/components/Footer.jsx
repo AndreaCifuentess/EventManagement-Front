@@ -50,7 +50,7 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="mt-10 border-t border-white/20 pt-4 pb-4 flex flex-col md:flex-row justify-between items-center text-xs text-white/70">
-        <p>© 2025 EVENTIQUE. All rights reserved.</p>
+        <p>© 2025 EVENTIFY. All rights reserved.</p>
         <div className="flex space-x-4 mt-2 md:mt-0 text-lg">
           <a href="https://github.com/newdevatgit/event-management-ui"><FaGithub /></a>
           <a href="#"><FaLinkedin /></a>

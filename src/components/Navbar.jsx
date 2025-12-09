@@ -7,7 +7,6 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Controlar el overflow del body cuando el menú está abierto
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
     if (!isMenuOpen) {
@@ -30,14 +29,15 @@ export default function Navbar() {
 
   return (
     <nav className="w-full px-4 py-3 flex justify-between items-center bg-white shadow-sm font-poppins relative z-50">
-      {/* Logo */}
-      <div>
-        <Link to="/" onClick={closeMenu}>
+       {/* Logo y Nombre */}
+      <div className="flex items-center">
+        <Link to="/" onClick={closeMenu} className="flex items-center">
           <img
-            src="https://github.com/newdevatgit/event-management-ui/blob/main/public/logo.png?raw=true"
-            alt="Eventique"
+            src="/icono.png"
+            alt="Eventyfy"
             className="h-[60px] w-auto object-fill"
           />
+          <span className="ml-2 text-2xl font-bold text-gray-800">Eventyfy</span>
         </Link>
       </div>
 
@@ -100,10 +100,10 @@ export default function Navbar() {
               <>
                 <Link
                   onClick={closeMenu}
-                  to="/cart"
+                  to="/reserve"
                   className="w-full border border-white text-white px-6 py-3 rounded-full font-medium hover:bg-white hover:text-black transition-colors text-center"
                 >
-                  My Cart
+                  Reservar
                 </Link>
                 {user?.type === "ADMIN" ? (
                   <Link
@@ -121,6 +121,7 @@ export default function Navbar() {
                   >
                     {user?.fullName || "Profile"}
                   </Link>
+                  
                 )}
                 <button
                   onClick={handleLogout}
@@ -165,12 +166,11 @@ export default function Navbar() {
             <span className="text-gray-700 flex items-center px-3">
               👋 Hola, {user?.fullName || user?.email || "Usuario"}
             </span>
-            <Link
-              to="/cart"
-              className="text-black border border-gray-300 px-4 py-2 rounded-full font-medium hover:bg-gray-100"
-            >
-              🛒 Cart
-            </Link>
+             {user?.type !== "ADMIN" && (
+              <Link to="/reserve" className="text-black border border-gray-300 px-4 py-2 rounded-full font-medium hover:bg-gray-100">
+                🛒 Reservar
+              </Link>
+            )}
             {user?.type === "ADMIN" ? (
               <Link
                 to="/admin/dashboard"

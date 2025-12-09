@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { loginRequest } from "../api/auth"; 
 import { useNavigate, Link } from "react-router-dom";
@@ -27,7 +26,7 @@ export default function SignIn() {
   };
 
   const handleEmailSignIn = async () => { 
-    console.log("🔑 Iniciando login...");
+    console.log(" Iniciando login...");
     
     if (!formData.email || !formData.password) {
       showSnackbar("Por favor completa todos los campos", "error");

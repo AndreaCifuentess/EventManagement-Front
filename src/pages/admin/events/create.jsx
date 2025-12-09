@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createEvent } from "../../../api/events";
-import useSnackbar from "../../../hooks/useSnackbar"; // Cambiar esta importación
+import useSnackbar from "../../../hooks/useSnackbar";
 
 export default function CreateEvent() {
   const navigate = useNavigate();

@@ -12,7 +12,9 @@ export default function EventsList() {
     eventId: null,
     eventType: "",
   });
-  const { showSnackbar, SnackbarComponent } = useSnackbar();  
+  
+
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
 
   // URL base del backend
   const API_BASE_URL = 'http://localhost:8081';
@@ -26,11 +28,8 @@ export default function EventsList() {
       return imageUrl;
     }
     
-  
-    const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-    const fullUrl = `${API_BASE_URL}${path}`;
-    console.log(`Construyendo URL de imagen: ${imageUrl} -> ${fullUrl}`); // Para debug
-    return fullUrl;
+    const path = imageUrl.startsWith('/') ? imageUrl : `${imageUrl}`;
+    return `${API_BASE_URL}${path}`;
   };
 
   useEffect(() => {
@@ -40,10 +39,14 @@ export default function EventsList() {
   const loadEvents = async () => {
     try {
       const data = await getEvents();
-      console.log("Datos recibidos del backend:", data);
       setEvents(data);
+      showSnackbar(` Se cargaron ${data.length} eventos exitosamente`, "success");
     } catch (error) {
-      showSnackbar("Error al cargar los eventos", "error");
+      let errorMessage = "Error al cargar los eventos";
+      if (error.response && error.response.data) {
+        errorMessage = error.response.data.message || error.response.data.error || errorMessage;
+      }
+      showSnackbar(` ${errorMessage}`, "error");
       console.error(error);
     } finally {
       setLoading(false);
@@ -71,19 +74,17 @@ export default function EventsList() {
     try {
       await deleteEvent(deleteModal.eventId);
       setEvents(events.filter(event => event.id !== deleteModal.eventId));
-      showSnackbar(`Evento "${deleteModal.eventType}" eliminado correctamente`, "success");
+      showSnackbar(` Evento "${deleteModal.eventType}" eliminado correctamente`, "success");
     } catch (error) {
-
-       let errorMessage = "Error al eliminar el evento";
-       if (error.response && error.response.data) {
+      let errorMessage = "Error al eliminar el evento";
+      if (error.response && error.response.data) {
         errorMessage = error.response.data.message || error.response.data.error || errorMessage;
       }
-      showSnackbar(errorMessage, "error");
+      showSnackbar(` ${errorMessage}`, "error");
     } finally {
       closeDeleteModal();
     }
   };
-  
 
   const filteredEvents = events.filter(event =>
     event.type.toLowerCase().includes(searchTerm.toLowerCase())
@@ -102,8 +103,9 @@ export default function EventsList() {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Snackbar para mensajes */}
-      <SnackbarComponent position="bottom" />
+      {/* ✅ Componente Snackbar para mostrar mensajes */}
+      <SnackbarComponent />
+      
       {/* Modal de Confirmación para Eliminar */}
       {deleteModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -231,7 +233,6 @@ export default function EventsList() {
                                   onError={(e) => {
                                     e.target.onerror = null;
                                     e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
-                                    console.error(`Error al cargar la imagen: ${imageUrl}`);
                                   }}
                                 />
                               </div>

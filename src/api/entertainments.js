@@ -1,9 +1,8 @@
-// src/api/entertainments.js
 import api from './axios';
 
 export const getEntertainments = async () => {
   try {
-    const response = await api.get("/entertainments");
+    const response = await api.get("/entertainment");
     return response.data;
   } catch (error) {
     console.error("Error fetching entertainments:", error);
@@ -13,7 +12,7 @@ export const getEntertainments = async () => {
 
 export const getEntertainmentById = async (id) => {
   try {
-    const response = await api.get(`/entertainments/${id}`);
+    const response = await api.get(`/entertainment/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching entertainment with id ${id}:`, error);
@@ -33,7 +32,7 @@ export const createEntertainment = async (entertainmentData) => {
 
 export const updateEntertainment = async (id, entertainmentData) => {
   try {
-    const response = await api.put(`/entertainments/${id}`, entertainmentData);
+    const response = await api.put(`/entertainment/${id}`, entertainmentData);
     return response.data;
   } catch (error) {
     console.error(`Error updating entertainment with id ${id}:`, error);
@@ -43,7 +42,7 @@ export const updateEntertainment = async (id, entertainmentData) => {
 
 export const deleteEntertainment = async (id) => {
   try {
-    const response = await api.delete(`/entertainments/${id}`);
+    const response = await api.delete(`/entertainment/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error deleting entertainment with id ${id}:`, error);
