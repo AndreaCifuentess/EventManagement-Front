@@ -27,7 +27,7 @@ export const getClients = async () => {
 // Obtener pagos del usuario
 export const getUserPayments = async () => {
     try {
-        const response = await api.get("/payments");
+        const response = await api.get("/payment");
         return response;
     } catch (error) {
         console.error("Error fetching user payments:", error);
