@@ -44,7 +44,7 @@ export default function Services() {
                   </p>
                 </div>
 
-                {/* QUITÉ EL P DEL COSTO */}
+                
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-6">
                   <Link
                     to={`/event/${service.id}`}
