@@ -189,7 +189,7 @@ export default function ReservationForm() {
           entertainmentServices: entertainmentRes.data || [],
           decorationServices: decorationRes.data || [],
           cateringServices: cateringRes.data || [],
-          additionalServices: additionalRes.data?.additionalServices || [],
+          additionalServices: additionalRes.data || [],
         }));
         
       } catch (error) {
@@ -244,7 +244,7 @@ export default function ReservationForm() {
     });
   };
 
-  // 🎨 NUEVA FUNCIÓN: Confirmar desde modal
+ 
   const handleModalConfirm = (quantity) => {
     const { service, category } = modalState;
     
@@ -417,7 +417,7 @@ export default function ReservationForm() {
     );
   }
 
-  // Obtener valor por defecto para el modal
+ 
   const getDefaultModalValue = () => {
     if (modalState.serviceType === "catering") {
       return formData.guests || "10";
@@ -544,7 +544,7 @@ export default function ReservationForm() {
                     >
                       <div className="flex items-start gap-4">
                         <img
-                          src={establishment.image}
+                          src={establishment.imageUrl}
                           alt={establishment.name}
                           className="w-24 h-24 object-cover rounded-lg"
                         />

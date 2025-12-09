@@ -10,6 +10,8 @@ import SignUp from './pages/SignUp';
 import Profile from './pages/Profile';
 import Cart from './pages/Cart';
 
+import ClientRoute from './components/ClienteRoute';
+
 import AdminRoute from './components/AdminRoute';
 import AdminLayout from './pages/admin/Layout';
 import AdminDashboard from './pages/admin/dashboard';
@@ -66,7 +68,15 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/cart" element={<Cart />} />
 
-        <Route path="/reserve/:serviceId?" element={<ReservationForm />} />
+        {/* Ruta de reserva solo para clientes */}
+        <Route
+          path="/reserve/:serviceId?"
+          element={
+            <ClientRoute>
+              <ReservationForm />
+            </ClientRoute>
+          }
+        />
 
         {/* Rutas admin*/}
         <Route
