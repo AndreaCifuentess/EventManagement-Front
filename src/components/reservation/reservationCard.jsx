@@ -57,7 +57,7 @@ export default function ReservationCard({ reservation, showUserInfo = false }) {
     return statusMap[status?.toUpperCase()] || status || 'Desconocido';
   };
 
-  // Calcular si la reserva es próxima
+  
   const isUpcoming = () => {
     try {
       const today = new Date();
@@ -89,11 +89,6 @@ export default function ReservationCard({ reservation, showUserInfo = false }) {
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(reservation.status)}`}>
               {formatStatus(reservation.status)}
             </span>
-            {reservation.id && (
-              <span className="text-xs text-gray-500">
-                ID: {reservation.id.substring(0, 8)}...
-              </span>
-            )}
           </div>
         </div>
         
@@ -148,25 +143,58 @@ export default function ReservationCard({ reservation, showUserInfo = false }) {
       )}
 
       {/* Servicios */}
-      <div className="border-t pt-4">
-        <h4 className="font-semibold text-gray-800 mb-2">Servicios contratados</h4>
-        <div className="flex flex-wrap gap-2">
-          {reservation.services ? (
-            Object.entries(reservation.services).map(([category, serviceList]) => (
-              serviceList?.map((service, idx) => (
-                <span 
-                  key={`${category}-${idx}`}
-                  className="px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium"
-                >
-                  {service.name || `${category} ${idx + 1}`}
-                </span>
-              ))
-            )).flat()
-          ) : (
-            <p className="text-gray-500 text-sm">No hay servicios especificados</p>
-          )}
-        </div>
+    <div className="border-t pt-4">
+      <h4 className="font-semibold text-gray-800 mb-2">Servicios contratados</h4>
+      <div className="flex flex-wrap gap-2">
+        {reservation.services ? (
+          <>
+        {/* Decoración */}
+        {reservation.services.decoration && reservation.services.decoration.id && (
+          <span className="px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium">
+            Decoración
+          </span>
+        )}
+        
+        {/* Entretenimiento */}
+        {reservation.services.entertainment && 
+         Array.isArray(reservation.services.entertainment) &&
+         reservation.services.entertainment.length > 0 && (
+          <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
+            Entretenimiento ({reservation.services.entertainment.length})
+          </span>
+        )}
+        
+        {/* Catering */}
+        {reservation.services.catering && 
+         Array.isArray(reservation.services.catering) &&
+         reservation.services.catering.length > 0 && (
+          <span className="px-3 py-1 bg-green-50 text-green-700 rounded-lg text-xs font-medium">
+            Catering ({reservation.services.catering.length})
+          </span>
+        )}
+        
+        {/* Servicios adicionales */}
+            {reservation.services.additionalServices && 
+            Array.isArray(reservation.services.additionalServices) &&
+            reservation.services.additionalServices.length > 0 && (
+              <span className="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-lg text-xs font-medium">
+                Adicionales ({reservation.services.additionalServices.length})
+              </span>
+            )}
+            
+            {/* Si no hay servicios */}
+            {!reservation.services.decoration?.id &&
+            !reservation.services.entertainment?.length &&
+            !reservation.services.catering?.length &&
+            !reservation.services.additionalServices?.length && (
+              <p className="text-gray-500 text-sm">No hay servicios especificados</p>
+            )}
+          </>
+        ) : (
+          <p className="text-gray-500 text-sm">No hay servicios especificados</p>
+        )}
       </div>
+    </div>
 
       {/* Acciones */}
       <div className="border-t pt-4 mt-4 flex justify-end space-x-3">

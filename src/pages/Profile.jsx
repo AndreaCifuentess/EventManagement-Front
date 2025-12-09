@@ -10,7 +10,7 @@ import ReservationCard from "../components/reservation/reservationCard";
 export default function Profile() {
     const { user, logout, isAuthenticated } = useAuth();
     const [userData, ] = useState(null);
-    const [reservations] = useState([]);
+    const [reservations, setReservations] = useState([]);
     const [payments, setPayments] = useState([]);
     const [activeTab, setActiveTab] = useState("overview");
     const [isLoading, setIsLoading] = useState(true);
@@ -26,17 +26,28 @@ export default function Profile() {
             try {
                 setIsLoading(true);
                 
-                
                 // Obtener reservas del usuario
                 const reservationsResponse = await getReservations();
                 console.log("Reservas recibidas:", reservationsResponse);
                 console.log("Tipo de datos:", typeof reservationsResponse.data);
                 console.log("Es array?:", Array.isArray(reservationsResponse.data));
                 console.log("Cantidad:", reservationsResponse.data?.length || 0);
-                
+
+                 if (reservationsResponse.data && Array.isArray(reservationsResponse.data)) {
+                    setReservations(reservationsResponse.data);
+                } else if (Array.isArray(reservationsResponse)) {
+                    // Si la API devuelve el array directamente
+                    setReservations(reservationsResponse);
+                } else {
+                    console.warn("Formato de reservas inesperado:", reservationsResponse);
+                    setReservations([]);
+                }
+            
                 // Obtener pagos del usuario
                 const paymentsResponse = await getUserPayments();
                 setPayments(paymentsResponse.data || []);
+
+
                 
             } catch (error) {
                 console.error("Error fetching user data:", error);

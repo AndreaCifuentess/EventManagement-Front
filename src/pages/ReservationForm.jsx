@@ -2,25 +2,134 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import api from "../api/axios";
+import useSnackbar from "../hooks/useSnackbar"
+
+
+function ServiceModal({ isOpen, onClose, onConfirm, serviceType, serviceName, defaultValue }) {
+  const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue, isOpen]);
+
+  if (!isOpen) return null;
+
+  const getModalConfig = () => {
+    switch(serviceType) {
+      case "entretenimiento":
+        return {
+          title: "¿Cuántas horas?",
+          label: "Número de horas",
+          placeholder: "Ej: 3",
+          icon: "🎵",
+          color: "purple"
+        };
+      case "adicionales":
+        return {
+          title: "¿Qué cantidad?",
+          label: "Cantidad",
+          placeholder: "Ej: 1",
+          icon: "📦",
+          color: "yellow"
+        };
+      case "catering":
+        return {
+          title: "¿Número de platos?",
+          label: "Cantidad de platos",
+          placeholder: "Ej: 10",
+          icon: "🍽️",
+          color: "green"
+        };
+      default:
+        return {
+          title: "Cantidad",
+          label: "Cantidad",
+          placeholder: "1",
+          icon: "✨",
+          color: "blue"
+        };
+    }
+  };
+
+  const config = getModalConfig();
+  const colorClasses = {
+    purple: "bg-purple-500 hover:bg-purple-600 focus:ring-purple-500",
+    yellow: "bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500",
+    green: "bg-green-500 hover:bg-green-600 focus:ring-green-500",
+    blue: "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="text-6xl mb-3">{config.icon}</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">
+            {config.title}
+          </h3>
+          <p className="text-gray-600 text-sm">
+            Para: <span className="font-semibold">{serviceName}</span>
+          </p>
+        </div>
+
+        {/* Input */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {config.label}
+          </label>
+          <input
+            type="number"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={config.placeholder}
+            min="1"
+            className="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+            autoFocus
+          />
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-all"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => onConfirm(parseInt(value) || 1)}
+            className={`flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all ${colorClasses[config.color]}`}
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ReservationForm() {
   const location = useLocation();
   const navigate = useNavigate();
   const { serviceId } = useParams();
-  
-  // Estado inicial con el servicio que viene de CategoryServices
+ 
+  const { showSnackbar, SnackbarComponent } = useSnackbar();
+
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    serviceType: null,
+    service: null,
+    category: null
+  });
+
   const [formData, setFormData] = useState({
-    // Información del evento
     eventType: "",
     eventDate: "",
     eventTime: "",
     guests: "",
     comments: "",
-    
-    // Establecimiento
     establishmentId: "",
-    
-    // Servicios seleccionados (con nombre si viene de CategoryServices)
     selectedServices: serviceId && location.state?.category 
       ? [{ 
           id: serviceId, 
@@ -29,8 +138,6 @@ export default function ReservationForm() {
           cost: location.state?.serviceCost || 0
         }] 
       : [],
-    
-    // Servicios disponibles para agregar
     entertainmentServices: [],
     decorationServices: [],
     cateringServices: [],
@@ -38,15 +145,9 @@ export default function ReservationForm() {
   });
   
   const [establishments, setEstablishments] = useState([]);
-  const [availableDates, setAvailableDates] = useState([]);
+  const [eventTypes, setEventTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [totalCost, setTotalCost] = useState(0);
-
-  // Tipos de evento
-  const eventTypes = [
-    "Boda", "Cumpleaños", "Aniversario", "Corporativo",
-    "Graduación", "Baby Shower", "Fiesta Temática", "Otro"
-  ];
 
   const getServiceCost = (service, category) => {
     switch(category) {
@@ -63,27 +164,19 @@ export default function ReservationForm() {
     }
   };
 
-  // Función para mostrar nombres amigables de categorías
-  const getCategoryDisplayName = (category) => {
-    const categoryNames = {
-      entretenimiento: "Entretenimiento",
-      decoracion: "Decoración",
-      catering: "Catering", // Cambia a "Abastecimiento" si prefieres
-      adicionales: "Servicios Adicionales"
-    };
-    return categoryNames[category] || category;
-  };
-
   useEffect(() => {
     const loadFormData = async () => {
       try {
         setIsLoading(true);
         
-        // 1. Cargar establecimientos
-        const establishmentsRes = await api.get("/establishments");
+        const [establishmentsRes, eventTypesRes] = await Promise.all([
+          api.get("/establishments"),
+          api.get("/events")
+        ]);
+
         setEstablishments(establishmentsRes.data || []);
+        setEventTypes(eventTypesRes.data || []);
         
-        // 2. Cargar servicios por categoría (para agregar más)
         const [entertainmentRes, decorationRes, cateringRes, additionalRes] = await Promise.all([
           api.get("/entertainment"),
           api.get("/decoration"),
@@ -99,11 +192,6 @@ export default function ReservationForm() {
           additionalServices: additionalRes.data?.additionalServices || [],
         }));
         
-        // 3. Si venimos con un servicio pre-seleccionado, calcular costo
-        if (serviceId && location.state?.category) {
-          calculateTotal();
-        }
-        
       } catch (error) {
         console.error("Error cargando datos:", error);
         toast.error("Error al cargar datos del formulario");
@@ -115,104 +203,207 @@ export default function ReservationForm() {
     loadFormData();
   }, [serviceId]);
 
-  // Calcular costo total
-   const calculateTotal = useCallback(() => {
+  const calculateTotal = useCallback(() => {
     let total = 0;
     
-    // Sumar costo de servicios seleccionados
-   formData.selectedServices.forEach(service => {
-      const cost = service.cost || getServiceCost(service, service.category) || 0;
-      total += Number(cost) || 0;
+    formData.selectedServices.forEach(service => {
+      if (service.totalCost) {
+        total += service.totalCost;
+      } else {
+        const cost = service.cost || getServiceCost(service, service.category) || 0;
+        total += Number(cost) || 0;
+      }
     });
     
-    // Agregar costo del establecimiento 
-     if (formData.establishmentId && establishments.length > 0) {
-    const selectedEstablishment = establishments.find(e => e.id === formData.establishmentId);
-    if (selectedEstablishment?.cost) {
-      console.log("💰 Sumando establecimiento:", selectedEstablishment.name, selectedEstablishment.cost);
-      total += Number(selectedEstablishment.cost) || 0;
+    if (formData.establishmentId && establishments.length > 0) {
+      const selectedEstablishment = establishments.find(e => e.id === formData.establishmentId);
+      if (selectedEstablishment?.cost) {
+        total += Number(selectedEstablishment.cost) || 0;
+      }
     }
-  }
-      setTotalCost(total);
+    
+    setTotalCost(total);
   }, [formData.selectedServices, formData.establishmentId, establishments]);
 
-  // Recalcular total cuando cambien los servicios o el establecimiento
   useEffect(() => {
     calculateTotal();
   }, [calculateTotal]);
 
-  // Manejar cambios en el formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Agregar servicio
-   const addService = (service, category) => {
-    const cost = getServiceCost(service, category);
-    setFormData(prev => ({
-      ...prev,
-      selectedServices: [...prev.selectedServices, { 
-        ...service, 
-        category,
-        cost,
-        name: service.name || service.theme || service.menuType
-      }]
-    }));
-    
-    // No necesitas setTimeout, el useEffect se encargará
+
+  const openServiceModal = (service, category) => {
+    setModalState({
+      isOpen: true,
+      serviceType: category,
+      service: service,
+      category: category
+    });
   };
 
-  // Remover servicio
+  // 🎨 NUEVA FUNCIÓN: Confirmar desde modal
+  const handleModalConfirm = (quantity) => {
+    const { service, category } = modalState;
+    
+    let serviceDetails = {
+      ...service,
+      category,
+      name: service.name || service.theme || service.menuType
+    };
+    
+    if (category === "entretenimiento") {
+      serviceDetails.hours = quantity;
+      serviceDetails.totalCost = quantity * (service.hourlyRate || 0);
+    }
+    
+    if (category === "adicionales") {
+      serviceDetails.quantity = quantity;
+      serviceDetails.totalCost = quantity * (service.cost || 0);
+    }
+    
+    if (category === "catering") {
+      serviceDetails.numberDish = quantity;
+      serviceDetails.menuType = service.menuType || "GENERAL";
+      serviceDetails.totalCost = quantity * (service.costDish || 0);
+    }
+    
+    if (category === "decoracion") {
+      serviceDetails.totalCost = service.cost || 0;
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      selectedServices: [...prev.selectedServices, serviceDetails]
+    }));
+    
+    // Cerrar modal
+    setModalState({ isOpen: false, serviceType: null, service: null, category: null });
+  };
+
+  
+  const addService = (service, category) => {
+    if (category === "decoracion") {
+      let serviceDetails = {
+        ...service,
+        category,
+        name: service.theme || "Paquete Decoración",
+        totalCost: service.cost || 0
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        selectedServices: [...prev.selectedServices, serviceDetails]
+      }));
+      return;
+    }
+    
+    openServiceModal(service, category);
+  };
+
   const removeService = (index) => {
     setFormData(prev => ({
       ...prev,
       selectedServices: prev.selectedServices.filter((_, i) => i !== index)
     }));
-  };;
+  };
 
-  // Enviar reserva
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.establishmentId) {
-      toast.error("Debes seleccionar un establecimiento");
+       showSnackbar("Debes seleccionar un establecimiento");
       return;
     }
     
-    if (!formData.eventDate) {
-      toast.error("Debes seleccionar una fecha");
+     if (!formData.eventDate) {
+      showSnackbar("Debes seleccionar una fecha para el evento", "error");
+      return;
+    }
+    
+    if (!formData.eventType) {
+      showSnackbar("Selecciona el tipo de evento (Boda, Cumpleaños, etc.)", "error");
+      return;
+    }
+
+    const today = new Date();
+    const selectedDate = new Date(formData.eventDate);
+    if (selectedDate < today) {
+      showSnackbar("La fecha del evento no puede ser en el pasado", "error");
       return;
     }
     
     try {
       setIsLoading(true);
       
-      const reservationData = {
-        eventType: formData.eventType,
-        establishmentId: formData.establishmentId,
-        date: formData.eventDate,
-        time: formData.eventTime,
-        guests: formData.guests,
-        comments: formData.comments,
-        services: formData.selectedServices.map(s => ({
-          serviceId: s.id,
-          category: s.category,
-          name: s.name || s.theme || s.menuType,
-          cost: s.cost
-        })),
-        totalCost: totalCost,
-        status: "pending"
+      const servicesPayload = {
+        entertainment: [],
+        decoration: {},
+        catering: [],
+        additionalServices: []
       };
       
-      const response = await api.post("/reservations", reservationData);
+      formData.selectedServices.forEach(service => {
+        switch(service.category) {
+          case "entretenimiento":
+            servicesPayload.entertainment.push({
+              id: service.id,
+              hours: service.hours || 2
+            });
+            break;
+            
+          case "decoracion":
+            servicesPayload.decoration = {
+              id: service.id
+            };
+            break;
+            
+          case "catering":
+            servicesPayload.catering.push({
+              id: service.id,
+              menuType: service.menuType || "GENERAL",
+              numberDish: service.numberDish || formData.guests || 10
+            });
+            break;
+            
+          case "adicionales":
+            servicesPayload.additionalServices.push({
+              id: service.id,
+              quantity: service.quantity || 1
+            });
+            break;
+        }
+      });
       
-      toast.success("¡Reserva enviada exitosamente!");
+      const reservationPayload = {
+        guestNumber: parseInt(formData.guests) || 0,
+        dates: [formData.eventDate],
+        eventId: formData.eventType,
+        establishmentId: formData.establishmentId,
+        comments: formData.comments,
+        services: servicesPayload
+      };
+      
+      console.log("Payload a enviar:", JSON.stringify(reservationPayload, null, 2));
+      
+      const response = await api.post("/reserve", reservationPayload);
+      
+      showSnackbar(
+        `¡Reserva creada exitosamente! ID: ${response.data.id?.slice(0, 8)}...`, 
+        "success"
+      );
       navigate("/profile", { state: { reservationId: response.data.id } });
       
     } catch (error) {
-      console.error("Error enviando reserva:", error);
-      toast.error("Error al enviar la reserva. Intenta de nuevo.");
+      showSnackbar(
+        error.response?.data?.message || 
+        error.response?.data?.error || 
+        "Error al crear reserva", 
+        "error"
+      );
+      console.error("Error creating reserva:", error);
     } finally {
       setIsLoading(false);
     }
@@ -226,8 +417,29 @@ export default function ReservationForm() {
     );
   }
 
+  // Obtener valor por defecto para el modal
+  const getDefaultModalValue = () => {
+    if (modalState.serviceType === "catering") {
+      return formData.guests || "10";
+    }
+    if (modalState.serviceType === "entretenimiento") {
+      return "3";
+    }
+    return "1";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <SnackbarComponent position="bottom" />
+      <ServiceModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ isOpen: false, serviceType: null, service: null, category: null })}
+        onConfirm={handleModalConfirm}
+        serviceType={modalState.serviceType}
+        serviceName={modalState.service?.name || modalState.service?.theme || modalState.service?.menuType || "Servicio"}
+        defaultValue={getDefaultModalValue()}
+      />
+
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <button
@@ -246,9 +458,7 @@ export default function ReservationForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Columna 1: Información del Evento */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Información Básica */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-6">Información del Evento</h2>
               
@@ -265,8 +475,8 @@ export default function ReservationForm() {
                     required
                   >
                     <option value="">Seleccionar tipo</option>
-                    {eventTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
+                    {eventTypes.map(event => (
+                      <option key={event.id} value={event.id}>{event.type}</option>
                     ))}
                   </select>
                 </div>
@@ -298,19 +508,6 @@ export default function ReservationForm() {
                     required
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hora del Evento
-                  </label>
-                  <input
-                    type="time"
-                    name="eventTime"
-                    value={formData.eventTime}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
               </div>
               
               <div className="mt-6">
@@ -328,7 +525,6 @@ export default function ReservationForm() {
               </div>
             </div>
 
-            {/* Selección de Establecimiento */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-6">Selecciona el Establecimiento *</h2>
               
@@ -369,11 +565,9 @@ export default function ReservationForm() {
               )}
             </div>
 
-            {/* Agregar más servicios */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-6">Agregar Más Servicios (Opcional)</h2>
               
-              {/* Entretenimiento */}
               <div className="mb-6">
                 <h3 className="font-bold text-gray-700 mb-3">Entretenimiento</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -383,7 +577,7 @@ export default function ReservationForm() {
                         <div>
                           <p className="font-medium">{service.name}</p>
                           <p className="text-sm text-gray-500">{service.type}</p>
-                          <p className="text-sm font-bold">${service.hourlyRate}</p>
+                          <p className="text-sm font-bold">${service.hourlyRate} por hora</p>
                         </div>
                         <button
                           type="button"
@@ -398,7 +592,6 @@ export default function ReservationForm() {
                 </div>
               </div>
               
-              {/* Decoración */}
               <div className="mb-6">
                 <h3 className="font-bold text-gray-700 mb-3">Decoración</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -422,7 +615,6 @@ export default function ReservationForm() {
                 </div>
               </div>
               
-              {/* Catering */}
               <div className="mb-6">
                 <h3 className="font-bold text-gray-700 mb-3">Catering</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -431,8 +623,7 @@ export default function ReservationForm() {
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-medium">{service.menuType}</p>
-                          <p className="text-sm text-gray-500">{service.numberDish} platos</p>
-                          <p className="text-sm font-bold">${service.costDish}</p>
+                          <p className="text-sm text-gray-500">${service.costDish} por plato</p>
                         </div>
                         <button
                           type="button"
@@ -447,7 +638,6 @@ export default function ReservationForm() {
                 </div>
               </div>
               
-              {/* Adicionales */}
               <div>
                 <h3 className="font-bold text-gray-700 mb-3">Servicios Adicionales</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -456,7 +646,7 @@ export default function ReservationForm() {
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-medium">{service.name}</p>
-                          <p className="text-sm text-gray-500">${service.cost}</p>
+                          <p className="text-sm text-gray-500">${service.cost} c/u</p>
                         </div>
                         <button
                           type="button"
@@ -473,12 +663,10 @@ export default function ReservationForm() {
             </div>
           </div>
 
-          {/* Columna 2: Resumen y Checkout */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6">
               <h2 className="text-xl font-bold text-gray-800 mb-6">Resumen de Reserva</h2>
               
-              {/* Servicios seleccionados */}
               <div className="mb-6">
                 <h3 className="font-bold text-gray-700 mb-3">Servicios Seleccionados</h3>
                 {formData.selectedServices.length === 0 ? (
@@ -492,9 +680,19 @@ export default function ReservationForm() {
                             {service.name || service.theme || service.menuType || "Servicio"}
                           </p>
                           <p className="text-xs text-gray-500 capitalize">{service.category}</p>
+                          
+                          {service.hours && (
+                            <p className="text-xs text-gray-500">Horas: {service.hours}</p>
+                          )}
+                          {service.quantity && (
+                            <p className="text-xs text-gray-500">Cantidad: {service.quantity}</p>
+                          )}
+                          {service.numberDish && (
+                            <p className="text-xs text-gray-500">Platos: {service.numberDish}</p>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold">${service.cost || 0}</span>
+                          <span className="font-bold">${service.totalCost || service.cost || 0}</span>
                           <button
                             type="button"
                             onClick={() => removeService(index)}
@@ -509,7 +707,6 @@ export default function ReservationForm() {
                 )}
               </div>
               
-              {/* Establecimiento seleccionado */}
               {formData.establishmentId && (
                 <div className="mb-6">
                   <h3 className="font-bold text-gray-700 mb-3">Establecimiento</h3>
@@ -526,17 +723,22 @@ export default function ReservationForm() {
                 </div>
               )}
               
-              {/* Detalles del evento */}
               <div className="mb-6">
                 <h3 className="font-bold text-gray-700 mb-3">Detalles del Evento</h3>
                 <div className="space-y-2 text-sm">
-                  {formData.eventType && <p><strong>Tipo:</strong> {formData.eventType}</p>}
+                  {formData.eventType && (
+                    <p>
+                      <strong>Tipo:</strong> {
+                        eventTypes.find(event => event.id === formData.eventType)?.type ||
+                        formData.eventType
+                      }
+                    </p>
+                  )}
                   {formData.eventDate && <p><strong>Fecha:</strong> {formData.eventDate}</p>}
                   {formData.guests && <p><strong>Invitados:</strong> {formData.guests}</p>}
                 </div>
               </div>
               
-              {/* Total */}
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total Estimado:</span>
@@ -545,7 +747,6 @@ export default function ReservationForm() {
                 <p className="text-sm text-gray-500 mt-1">* El pago final puede variar</p>
               </div>
               
-              {/* Botón de enviar */}
               <button
                 type="submit"
                 disabled={isLoading || !formData.establishmentId || !formData.eventDate}
